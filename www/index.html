@@ -238,6 +238,21 @@
   <body
     class="text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden relative"
   >
+    <!-- App Loading State (For IndexedDB initialization) -->
+    <div id="appLoadingState" class="fixed inset-0 bg-[#05070c] z-[9999] flex flex-col items-center justify-center transition-opacity duration-300">
+      <div id="loadingSpinner" class="flex flex-col items-center">
+        <svg class="animate-spin h-10 w-10 text-emerald-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <div class="text-sm text-slate-300 font-medium">Loading your journey...</div>
+      </div>
+      <div id="loadingError" class="hidden flex flex-col items-center px-6 text-center max-w-sm">
+        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-3xl mb-3"></i>
+        <div class="text-sm text-rose-400 font-bold mb-1">Data Load Error</div>
+        <div id="loadingErrorText" class="text-xs text-slate-400">Unable to load your saved progress.</div>
+      </div>
+    </div>
     <!-- Header -->
     <header
       class="w-full max-w-md mx-auto px-3.5 py-2.5 flex justify-between items-center border-b border-white/[0.06]"

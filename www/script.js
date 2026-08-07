@@ -13,32 +13,88 @@ const defaultState = {
   dailyHistory: {}
 };
 
-function loadState() {
+const DB_NAME = 'IstighfarAppDB';
+const STORE_NAME = 'stateStore';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, 1);
+    request.onerror = (e) => reject(e.target.error);
+    request.onsuccess = (e) => resolve(e.target.result);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME);
+      }
+    };
+  });
+}
+
+async function loadStateIDB() {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      const parsed = JSON.parse(saved);
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const store = tx.objectStore(STORE_NAME);
+    const request = store.get('app_state');
+    
+    const idbState = await new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+
+    if (idbState) {
       return {
         ...defaultState,
-        ...parsed,
-        unlockedBadges: new Set(parsed.unlockedBadges || []),
-        dailyHistory: parsed.dailyHistory || {}
+        ...idbState,
+        unlockedBadges: new Set(idbState.unlockedBadges || []),
+        dailyHistory: idbState.dailyHistory || {}
       };
+    } else {
+      // Migrate from localStorage
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        const migratedState = {
+          ...defaultState,
+          ...parsed,
+          unlockedBadges: new Set(parsed.unlockedBadges || []),
+          dailyHistory: parsed.dailyHistory || {}
+        };
+        await saveStateIDB(migratedState); // Save to IDB
+        localStorage.removeItem(STORAGE_KEY); // Clean up
+        return migratedState;
+      }
     }
-  } catch (e) {}
+  } catch (err) {
+    console.error('Failed to load state', err);
+    throw err;
+  }
   return { ...defaultState, unlockedBadges: new Set(), dailyHistory: {} };
 }
 
-let state = loadState();
+let state = null; // Will be initialized asynchronously
 
-function saveState() {
+async function saveStateIDB(stateToSave = state) {
+  if (!stateToSave) return;
   try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const store = tx.objectStore(STORE_NAME);
+    
     const toSave = {
-      ...state,
-      unlockedBadges: Array.from(state.unlockedBadges)
+      ...stateToSave,
+      unlockedBadges: Array.from(stateToSave.unlockedBadges)
     };
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(toSave));
-  } catch (e) {}
+    
+    store.put(toSave, 'app_state');
+  } catch (err) {
+    console.error('Failed to save state to IDB', err);
+  }
+}
+
+// Keep original saveState signature to avoid breaking other calls (it now calls IDB async without awaiting)
+function saveState() {
+  saveStateIDB(state);
 }
 
 function getFormattedDate(d = new Date()) {
@@ -508,8 +564,7 @@ function checkDailyReset() {
   }
 }
 
-// Initial evaluation on script load
-checkDailyReset();
+// checkDailyReset is now called inside initApp initially
 
 function handleTap() {
   checkDailyReset(); // Handles mid-session date crossovers seamlessly
@@ -570,6 +625,11 @@ function handleFullReset() {
       dailyHistory: {}
     };
     localStorage.removeItem(STORAGE_KEY);
+    // Also remove from IDB
+    openDB().then(db => {
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).delete('app_state');
+    }).catch(console.error);
     saveState();
     updateProgress();
     renderBadgesList();
@@ -786,17 +846,45 @@ importFileInput.addEventListener('change', (e) => {
   reader.readAsText(file);
 });
 
-// Quick Action Launcher
-const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get('action') === 'quick-tap') {
-  handleTap();
+// Wrap the initial UI logic in an async initApp function
+async function initApp() {
+  const loadingState = document.getElementById('appLoadingState');
+  const loadingSpinner = document.getElementById('loadingSpinner');
+  const loadingError = document.getElementById('loadingError');
+  const loadingErrorText = document.getElementById('loadingErrorText');
+
+  try {
+    state = await loadStateIDB();
+    
+    checkDailyReset();
+
+    // Quick Action Launcher
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'quick-tap') {
+      handleTap();
+    }
+
+    // Initialize UI
+    progressRing.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`;
+    soundToggle.classList.toggle('on', state.soundEnabled);
+    renderBadgesList();
+    updateProgress();
+
+    // Hide Loading State
+    loadingState.style.opacity = '0';
+    setTimeout(() => {
+      loadingState.classList.add('hidden');
+    }, 300);
+
+  } catch (err) {
+    loadingSpinner.classList.add('hidden');
+    loadingError.classList.remove('hidden');
+    loadingErrorText.textContent = err.message || 'Unable to load your saved progress.';
+  }
 }
 
-// Initialize UI
-progressRing.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`;
-soundToggle.classList.toggle('on', state.soundEnabled);
-renderBadgesList();
-updateProgress();
+// Start Initialization
+initApp();
 
 if ('serviceWorker' in navigator) {
   if (window.Capacitor) {
