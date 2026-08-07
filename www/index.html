@@ -1,0 +1,1057 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Istighfar Counter v2.2 - Journey to Light</title>
+
+    <!-- PWA Manifest & Mobile Theme Support -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#05070c" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+    <link
+      rel="apple-touch-icon"
+      href="https://cdn-icons-png.flaticon.com/512/7096/7096052.png"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      @import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap");
+
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      .font-arabic {
+        font-family: "Amiri", serif;
+      }
+      .font-sans {
+        font-family: "Inter", sans-serif;
+      }
+
+      :root {
+        --accent-color: #10b981;
+        --accent-glow: rgba(16, 185, 129, 0.3);
+        --border-color: rgba(16, 185, 129, 0.2);
+        --card-bg: #0a1710;
+      }
+
+      body {
+        background: radial-gradient(
+          ellipse 120% 60% at 50% -10%,
+          var(--card-bg) 0%,
+          #05070c 65%
+        );
+        background-attachment: fixed;
+      }
+
+      .glow-pulse {
+        box-shadow: 0 0 42px var(--accent-glow);
+      }
+      .theme-accent-text {
+        color: var(--accent-color);
+      }
+      .theme-accent-bg {
+        background-color: var(--accent-color);
+      }
+      .theme-accent-border {
+        border-color: var(--border-color);
+      }
+
+      .soft-shadow {
+        box-shadow:
+          0 8px 24px -8px rgba(0, 0, 0, 0.45),
+          0 2px 8px -2px rgba(0, 0, 0, 0.3);
+      }
+      .soft-shadow-sm {
+        box-shadow:
+          0 4px 14px -6px rgba(0, 0, 0, 0.4),
+          0 1px 4px -1px rgba(0, 0, 0, 0.25);
+      }
+
+      .tap-btn {
+        touch-action: manipulation;
+        transition:
+          transform 0.08s cubic-bezier(0.4, 0, 0.2, 1),
+          box-shadow 0.3s ease,
+          border-color 0.3s ease;
+      }
+      .tap-btn:active {
+        transform: scale(0.95);
+      }
+
+      @keyframes floatUp {
+        0% {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: translateY(-70px) scale(1.3);
+        }
+      }
+      .floating-milestone {
+        animation: floatUp 1.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        pointer-events: none;
+      }
+
+      .confetti {
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        animation: confettiFall 2.2s ease-out forwards;
+        pointer-events: none;
+      }
+      @keyframes confettiFall {
+        0% {
+          opacity: 1;
+          transform: translate(0, 0) scale(1);
+        }
+        100% {
+          opacity: 0;
+          transform: translate(var(--dx), var(--dy)) scale(0.2);
+        }
+      }
+
+      /* Heatmap styling */
+      .hm-cell {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        transition:
+          transform 0.15s ease,
+          border-color 0.15s ease;
+        position: relative;
+      }
+      .hm-cell:hover {
+        transform: scale(1.3);
+        z-index: 10;
+        outline: 1px solid rgba(255, 255, 255, 0.6);
+      }
+
+      .hm-level-0 {
+        background-color: rgba(255, 255, 255, 0.05);
+      }
+      .hm-level-1 {
+        background-color: #064e3b;
+      }
+      .hm-level-2 {
+        background-color: #047857;
+      }
+      .hm-level-3 {
+        background-color: #10b981;
+      }
+      .hm-level-4 {
+        background-color: #34d399;
+        box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
+      }
+
+      /* Tooltip styling */
+      .hm-cell[data-tooltip]:hover::after {
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 125%;
+        left: 50%;
+        transform: translateX(-50%);
+        background-color: #0f172a;
+        color: #f8fafc;
+        padding: 3px 6px;
+        border-radius: 4px;
+        font-size: 9px;
+        white-space: nowrap;
+        pointer-events: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        z-index: 30;
+      }
+
+      /* Sound toggle switch */
+      .switch-track {
+        width: 34px;
+        height: 19px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        position: relative;
+        transition: background 0.2s ease;
+        flex-shrink: 0;
+      }
+      .switch-track.on {
+        background: var(--accent-color);
+      }
+      .switch-thumb {
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 15px;
+        height: 15px;
+        border-radius: 50%;
+        background: #0b0f14;
+        transition: transform 0.2s ease;
+      }
+      .switch-track.on .switch-thumb {
+        transform: translateX(15px);
+        background: #06120c;
+      }
+
+      ::-webkit-scrollbar {
+        width: 5px;
+        height: 5px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #374151;
+        border-radius: 9999px;
+      }
+
+      /* Focus Mode Overlay */
+      body.focus-mode {
+        overflow: hidden;
+      }
+      body.focus-mode header,
+      body.focus-mode .hide-in-focus {
+        display: none !important;
+      }
+      #focusOverlay {
+        touch-action: manipulation;
+      }
+      #focusOverlay {
+        touch-action: manipulation;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+    </style>
+  </head>
+  <body
+    class="text-slate-100 min-h-screen flex flex-col font-sans select-none overflow-x-hidden relative"
+  >
+    <!-- Header -->
+    <header
+      class="w-full max-w-md mx-auto px-3.5 py-2.5 flex justify-between items-center border-b border-white/[0.06]"
+    >
+      <div class="flex items-center space-x-2 min-w-0">
+        <div
+          class="w-8 h-8 rounded-lg bg-white/[0.04] border theme-accent-border flex items-center justify-center relative soft-shadow-sm shrink-0"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="w-4 h-4 theme-accent-text"
+            fill="none"
+          >
+            <circle cx="12" cy="4" r="1.5" fill="currentColor" />
+            <circle cx="18.9" cy="7.5" r="1.5" fill="currentColor" />
+            <circle cx="20.8" cy="14.6" r="1.5" fill="currentColor" />
+            <circle cx="17" cy="20.4" r="1.5" fill="currentColor" />
+            <circle cx="10" cy="21.7" r="1.5" fill="currentColor" />
+            <circle cx="4.4" cy="17.6" r="1.5" fill="currentColor" />
+            <circle cx="3.6" cy="10.6" r="1.5" fill="currentColor" />
+            <circle cx="7.8" cy="4.9" r="1.5" fill="currentColor" />
+          </svg>
+          <span
+            id="levelBadge"
+            class="absolute -bottom-1 -right-1 text-[8px] font-bold theme-accent-bg text-slate-950 px-1 py-0 rounded-full border border-slate-950/80 leading-tight"
+            >★1</span
+          >
+        </div>
+        <div class="min-w-0">
+          <h1
+            class="text-[13px] font-semibold text-slate-100 leading-tight truncate"
+          >
+            Istighfar v2.2
+          </h1>
+          <p id="rankSubtitle" class="text-[10px] text-slate-500 truncate">
+            Novice Seeker • 0 XP
+          </p>
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="flex items-center space-x-1 shrink-0">
+        <button
+          id="focusBtn"
+          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
+          title="Focus Mode (Full Screen)"
+        >
+          <i class="fa-solid fa-expand text-xs"></i>
+        </button>
+        <button
+          id="milestonesBtn"
+          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
+          title="Achievements"
+        >
+          <i class="fa-solid fa-trophy text-xs theme-accent-text"></i>
+        </button>
+        <button
+          id="infoBtn"
+          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
+          title="Virtues & Duas"
+        >
+          <i class="fa-solid fa-book-open text-xs"></i>
+        </button>
+        <button
+          id="settingsBtn"
+          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
+          title="Insights & Settings"
+        >
+          <i class="fa-solid fa-sliders text-xs text-slate-300"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <main
+      class="flex-1 w-full max-w-md mx-auto px-3.5 py-2.5 flex flex-col justify-between items-center relative"
+    >
+      <!-- Toast Notification -->
+      <div
+        id="toastNotification"
+        class="absolute top-1.5 z-30 inset-x-3 bg-slate-900/95 border theme-accent-border text-slate-100 p-2.5 rounded-xl soft-shadow flex items-center space-x-2.5 hidden transition-all duration-300 backdrop-blur-md"
+      >
+        <div
+          id="toastIcon"
+          class="w-9 h-9 rounded-lg theme-accent-bg text-slate-950 flex items-center justify-center flex-shrink-0"
+        ></div>
+        <div class="flex-1 min-w-0">
+          <div
+            id="toastTitle"
+            class="text-[10px] font-bold uppercase tracking-wide theme-accent-text"
+          >
+            Milestone Unlocked!
+          </div>
+          <div id="toastDesc" class="text-[11px] text-slate-300 truncate">
+            Reached 1,000 Istighfar
+          </div>
+        </div>
+      </div>
+
+      <!-- Istighfar Selector & Phrase Display -->
+      <div class="w-full text-center space-y-1.5 mt-0.5">
+        <div class="relative inline-block w-full hide-in-focus">
+          <select
+            id="duaSelect"
+            class="w-full bg-white/[0.03] border border-white/[0.06] theme-accent-text font-medium text-[11px] rounded-lg px-3 py-2 appearance-none focus:outline-none cursor-pointer text-center pr-8"
+          >
+            <option value="1">Astaghfirullah (أَسْتَغْفِرُ اللَّهَ)</option>
+            <option value="2">Astaghfirullah wa Atubu Ilaih</option>
+            <option value="3">Sayyidul Istighfar (Master Invocation)</option>
+            <option value="4">Rabbighfir li wa tub 'alayya</option>
+          </select>
+          <div
+            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500"
+          >
+            <i class="fa-solid fa-chevron-down text-[10px]"></i>
+          </div>
+        </div>
+
+        <!-- Phrase Card -->
+        <div
+          class="bg-white/[0.025] border border-white/[0.05] rounded-xl p-2.5 soft-shadow-sm backdrop-blur-sm min-h-[72px] flex flex-col justify-center"
+        >
+          <p
+            id="arabicText"
+            class="font-arabic text-2xl text-slate-100 leading-relaxed font-bold"
+          >
+            أَسْتَغْفِرُ اللَّهَ
+          </p>
+          <p
+            id="transliterationText"
+            class="text-[10px] text-slate-400 italic mt-0.5"
+          >
+            "I seek forgiveness from Allah"
+          </p>
+        </div>
+      </div>
+
+      <!-- Tap Circle Region -->
+      <div
+        class="my-auto py-2 flex flex-col items-center justify-center w-full relative"
+      >
+        <div class="relative flex items-center justify-center">
+          <svg class="w-72 h-72 transform -rotate-90">
+            <circle
+              cx="144"
+              cy="144"
+              r="124"
+              stroke="currentColor"
+              stroke-width="10"
+              class="text-white/[0.05]"
+              fill="transparent"
+            />
+            <circle
+              id="progressRing"
+              cx="144"
+              cy="144"
+              r="124"
+              stroke="currentColor"
+              stroke-width="10"
+              stroke-dasharray="779.11"
+              stroke-dashoffset="779.11"
+              stroke-linecap="round"
+              class="theme-accent-text transition-all duration-300"
+              fill="transparent"
+            />
+          </svg>
+
+          <button
+            id="tapBtn"
+            class="tap-btn absolute w-56 h-56 rounded-full bg-gradient-to-br from-white/[0.05] to-black/30 border theme-accent-border soft-shadow flex flex-col items-center justify-center cursor-pointer group focus:outline-none"
+          >
+            <span
+              id="counterDisplay"
+              class="text-5xl font-extrabold tracking-tight text-slate-100 transition-transform"
+              >0</span
+            >
+            <span
+              class="text-[10px] text-slate-400 uppercase tracking-widest mt-1 font-semibold"
+              >Taps</span
+            >
+            <span
+              id="targetLabel"
+              class="text-[11px] theme-accent-text mt-2 bg-black/40 px-3 py-0.5 rounded-full border border-white/[0.08] font-semibold"
+            >
+              0% • Goal 1,000
+            </span>
+          </button>
+
+          <div
+            id="floatContainer"
+            class="absolute inset-0 pointer-events-none flex items-center justify-center z-20"
+          ></div>
+        </div>
+      </div>
+
+      <!-- Controls Toolbar -->
+      <div class="w-full space-y-2 hide-in-focus">
+        <!-- Preset Goals Pills -->
+        <div
+          class="flex justify-between items-center bg-white/[0.03] p-1 rounded-xl border border-white/[0.05]"
+        >
+          <span class="text-[10px] text-slate-500 font-medium pl-1.5"
+            >Goal:</span
+          >
+          <div class="flex space-x-1">
+            <button
+              class="target-btn px-2 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition"
+              data-target="100"
+            >
+              100
+            </button>
+            <button
+              class="target-btn px-2 py-1 text-[10px] font-semibold rounded-lg theme-accent-bg text-slate-950 font-bold transition"
+              data-target="1000"
+            >
+              1,000
+            </button>
+            <button
+              class="target-btn px-2 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition"
+              data-target="3000"
+            >
+              3,000
+            </button>
+            <button
+              class="target-btn px-2 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition"
+              data-target="10000"
+            >
+              10,000
+            </button>
+            <button
+              id="customTargetBtn"
+              class="px-1.5 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition"
+            >
+              Custom
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="grid grid-cols-2 gap-1.5">
+          <button
+            id="undoBtn"
+            class="flex items-center justify-center space-x-1 py-1.5 px-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] text-slate-400 text-[10px] font-medium rounded-lg transition"
+          >
+            <i class="fa-solid fa-rotate-left text-[10px]"></i>
+            <span>Undo</span>
+          </button>
+
+          <button
+            id="resetBtn"
+            class="flex items-center justify-center space-x-1 py-1.5 px-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] text-rose-400/80 text-[10px] font-medium rounded-lg transition"
+          >
+            <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
+            <span>Reset Session</span>
+          </button>
+        </div>
+
+        <!-- Lifetime Stats Cards -->
+        <div class="grid grid-cols-2 gap-1.5">
+          <div
+            class="bg-white/[0.025] border border-white/[0.05] rounded-lg p-1.5 flex flex-col items-center justify-center text-center"
+          >
+            <div class="text-[8px] text-slate-500 uppercase font-medium">
+              Today
+            </div>
+            <div
+              id="todayTotalDisplay"
+              class="text-[11px] font-semibold text-slate-100"
+            >
+              0
+            </div>
+          </div>
+
+          <div
+            class="bg-white/[0.025] border border-white/[0.05] rounded-lg p-1.5 flex flex-col items-center justify-center text-center"
+          >
+            <div class="text-[8px] text-slate-500 uppercase font-medium">
+              Lifetime
+            </div>
+            <div
+              id="lifetimeTotalDisplay"
+              class="text-[11px] font-semibold theme-accent-text"
+            >
+              0
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Full-Screen Tap Area Overlay for Focus Mode -->
+    <div
+      id="focusOverlay"
+      class="fixed inset-0 z-40 hidden cursor-pointer flex flex-col justify-between p-4 pointer-events-auto"
+    >
+      <div class="flex justify-between items-center w-full max-w-md mx-auto">
+        <span
+          class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold flex items-center gap-1.5"
+        >
+          <i
+            class="fa-solid fa-circle text-[6px] theme-accent-text animate-pulse"
+          ></i>
+          Focus Mode
+        </span>
+        <button
+          id="exitFocusBtn"
+          class="p-2 rounded-full bg-black/40 border border-white/10 text-slate-400 hover:text-slate-100 transition backdrop-blur-md"
+        >
+          <i class="fa-solid fa-compress text-sm"></i>
+        </button>
+      </div>
+      <div
+        class="text-center text-[10px] text-slate-500 uppercase tracking-widest font-medium pointer-events-none"
+      >
+        Tap anywhere to count
+      </div>
+    </div>
+
+    <!-- Insights & Settings Modal -->
+    <div
+      id="settingsModal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+    >
+      <div
+        class="bg-[#0d1117] border border-white/[0.08] w-full max-w-md rounded-2xl p-4 max-h-[88vh] overflow-y-auto space-y-4 soft-shadow"
+      >
+        <div
+          class="flex justify-between items-center border-b border-white/[0.06] pb-2.5"
+        >
+          <h3
+            class="font-semibold text-[13px] text-slate-100 flex items-center gap-2"
+          >
+            <i class="fa-solid fa-sliders theme-accent-text"></i> Insights &
+            Settings
+          </h3>
+          <button
+            id="closeSettingsModal"
+            class="text-slate-500 hover:text-slate-100 p-1"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-4 gap-1.5 text-center">
+          <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
+            <div
+              id="statTotalIstighfar"
+              class="text-[13px] font-bold text-slate-100"
+            >
+              0
+            </div>
+            <div
+              class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
+            >
+              Lifetime
+            </div>
+          </div>
+          <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
+            <div id="statStreak" class="text-[13px] font-bold text-slate-100">
+              1
+            </div>
+            <div
+              class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
+            >
+              Streak
+            </div>
+          </div>
+          <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
+            <div id="stat1kCount" class="text-[13px] font-bold text-slate-100">
+              0
+            </div>
+            <div
+              class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
+            >
+              1k Done
+            </div>
+          </div>
+          <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
+            <div
+              id="statBadgesEarned"
+              class="text-[13px] font-bold text-slate-100"
+            >
+              0/15
+            </div>
+            <div
+              class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
+            >
+              Badges
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Bar Chart -->
+        <div class="space-y-1.5">
+          <div
+            class="text-[11px] font-semibold text-slate-300 flex justify-between items-center"
+          >
+            <span class="flex items-center gap-1.5"
+              ><i
+                class="fa-solid fa-chart-simple text-[10px] text-slate-500"
+              ></i>
+              Last 7 Days</span
+            >
+            <span id="chartTotalLabel" class="text-[10px] theme-accent-text"
+              >0 total</span
+            >
+          </div>
+          <div
+            class="bg-black/30 p-3 rounded-xl border border-white/[0.05] h-32 flex flex-col justify-end"
+          >
+            <div
+              id="weeklyChartContainer"
+              class="flex items-end justify-between gap-2 h-20 w-full"
+            ></div>
+          </div>
+        </div>
+
+        <!-- GitHub-Style Heatmap Grid -->
+        <div class="space-y-1.5">
+          <div
+            class="text-[11px] font-semibold text-slate-300 flex justify-between items-center"
+          >
+            <span class="flex items-center gap-1.5"
+              ><i
+                class="fa-solid fa-calendar-days text-[10px] text-slate-500"
+              ></i>
+              Activity History</span
+            >
+
+            <div class="flex items-center gap-1 text-[8px] text-slate-500">
+              <span>Less</span>
+              <span
+                class="w-2 h-2 rounded-[1px] hm-level-0 inline-block"
+              ></span>
+              <span
+                class="w-2 h-2 rounded-[1px] hm-level-1 inline-block"
+              ></span>
+              <span
+                class="w-2 h-2 rounded-[1px] hm-level-2 inline-block"
+              ></span>
+              <span
+                class="w-2 h-2 rounded-[1px] hm-level-3 inline-block"
+              ></span>
+              <span
+                class="w-2 h-2 rounded-[1px] hm-level-4 inline-block"
+              ></span>
+              <span>More</span>
+            </div>
+          </div>
+
+          <div
+            class="bg-black/30 p-3 rounded-xl border border-white/[0.05] overflow-x-auto"
+          >
+            <div class="flex flex-col gap-1 w-max">
+              <div
+                id="heatmapMonths"
+                class="grid grid-flow-col auto-cols-[10px] gap-1 text-[8px] text-slate-500 font-mono pl-4"
+              ></div>
+
+              <div class="flex gap-1.5">
+                <div
+                  class="grid grid-rows-7 gap-1 text-[7px] text-slate-500 font-mono leading-[10px] select-none"
+                >
+                  <span>Sun</span>
+                  <span>Mon</span>
+                  <span>Tue</span>
+                  <span>Wed</span>
+                  <span>Thu</span>
+                  <span>Fri</span>
+                  <span>Sat</span>
+                </div>
+
+                <div
+                  id="heatmapGrid"
+                  class="grid grid-rows-7 grid-flow-col gap-1"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preferences -->
+        <div
+          class="flex items-center justify-between pt-1 border-t border-white/[0.06]"
+        >
+          <span class="text-[11px] text-slate-300 flex items-center gap-1.5"
+            ><i class="fa-solid fa-volume-high text-[10px] text-slate-500"></i>
+            Tap sound</span
+          >
+          <button
+            id="soundToggle"
+            class="switch-track on"
+            aria-label="Toggle sound"
+          >
+            <span class="switch-thumb"></span>
+          </button>
+        </div>
+
+        <!-- Data Management -->
+        <div class="space-y-2 pt-1 border-t border-white/[0.06]">
+          <div
+            class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-database text-[10px] text-slate-500"></i> Data
+          </div>
+          <div class="grid grid-cols-2 gap-2">
+            <button
+              id="exportDataBtn"
+              class="py-2 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-center gap-1.5"
+            >
+              <i class="fa-solid fa-download text-xs text-sky-400"></i>
+              <span>Export</span>
+            </button>
+
+            <button
+              id="importDataBtn"
+              class="py-2 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
+            >
+              <i class="fa-solid fa-upload text-xs text-emerald-400"></i>
+              <span>Import</span>
+            </button>
+            <!-- Hidden file input — triggered programmatically for Android compatibility -->
+            <input
+              type="file"
+              id="importFileInput"
+              accept=".json"
+              class="hidden"
+            />
+          </div>
+
+          <button
+            id="fullResetBtn"
+            class="w-full mt-2 py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 text-[11px] font-semibold rounded-xl transition flex items-center justify-center gap-1.5"
+          >
+            <i class="fa-solid fa-trash-can text-xs"></i>
+            <span>Full Reset (Wipe All Data)</span>
+          </button>
+        </div>
+
+        <!-- User Guide Button -->
+        <div class="space-y-2 pt-2 mt-2 border-t border-white/[0.06]">
+          <button
+            id="openGuideModalBtn"
+            class="w-full py-2.5 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-between group"
+          >
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-book-open-reader text-xs text-sky-400"></i>
+              <span>App Guide & Information</span>
+            </span>
+            <i class="fa-solid fa-chevron-right text-[9px] text-slate-500 group-hover:text-slate-300 transition"></i>
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+
+    <!-- Achievements Modal -->
+    <div
+      id="milestonesModal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+    >
+      <div
+        class="bg-[#0d1117] border border-white/[0.07] w-full max-w-md rounded-2xl p-4 max-h-[85vh] overflow-y-auto space-y-3 soft-shadow"
+      >
+        <div
+          class="flex justify-between items-center border-b border-white/[0.06] pb-2.5"
+        >
+          <div>
+            <h3
+              class="font-semibold text-[13px] text-slate-100 flex items-center gap-1.5"
+            >
+              <i class="fa-solid fa-trophy theme-accent-text text-xs"></i>
+              Achievements
+            </h3>
+            <p class="text-[9px] text-slate-500 mt-0.5">
+              Unlock ranks as you progress through Istighfar milestones
+            </p>
+          </div>
+          <button
+            id="closeMilestonesModal"
+            class="text-slate-500 hover:text-slate-100 p-1"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <div
+          class="bg-black/20 p-2.5 rounded-xl border border-white/[0.05] space-y-1.5"
+        >
+          <div class="flex justify-between items-center text-[11px]">
+            <span class="font-semibold text-slate-100" id="modalLevelTitle"
+              >Rank 1 • Novice Seeker</span
+            >
+            <span class="theme-accent-text font-semibold" id="modalXpText"
+              >0 XP</span
+            >
+          </div>
+          <div
+            class="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden"
+          >
+            <div
+              id="xpProgressBar"
+              class="theme-accent-bg h-full transition-all duration-500"
+              style="width: 0%"
+            ></div>
+          </div>
+          <p id="nextLevelLabel" class="text-[9px] text-slate-500 text-right">
+            500 XP until Rank 2
+          </p>
+        </div>
+
+        <div id="badgesContainer" class="space-y-1.5"></div>
+      </div>
+    </div>
+
+    <!-- Virtues Modal -->
+    <div
+      id="infoModal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+    >
+      <div
+        class="bg-[#0d1117] border border-white/[0.07] w-full max-w-md rounded-2xl p-4 max-h-[85vh] overflow-y-auto space-y-3 soft-shadow"
+      >
+        <div
+          class="flex justify-between items-center border-b border-white/[0.06] pb-2.5"
+        >
+          <h3
+            class="font-semibold text-[13px] theme-accent-text flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-heart text-xs"></i> Virtues of Istighfar
+          </h3>
+          <button
+            id="closeInfoModal"
+            class="text-slate-500 hover:text-slate-100 p-1"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <div class="space-y-2 text-[11px] text-slate-300 leading-relaxed">
+          <div class="p-2.5 bg-black/20 rounded-xl border border-white/[0.05]">
+            <span class="font-semibold text-slate-100 block mb-1"
+              >Surah Nuh (71:10-12)</span
+            >
+            "Ask forgiveness of your Lord. Indeed, He is ever a Perpetual
+            Forgiver. He will send rain upon you in showers and give you
+            increase in wealth and children..."
+          </div>
+          <div class="p-2.5 bg-black/20 rounded-xl border border-white/[0.05]">
+            <span class="font-semibold text-slate-100 block mb-1"
+              >Hadith (Sunan Abi Dawud 1518)</span
+            >
+            "Whoever increases his prayers for forgiveness, Allah will grant him
+            relief from every worry and a way out from every hardship..."
+          </div>
+          <div class="p-2.5 bg-black/20 rounded-xl border border-white/[0.05]">
+            <span class="font-semibold text-slate-100 block mb-1"
+              >Hadith (Sahih al-Bukhari 6307)</span
+            >
+            The Prophet ﷺ said: "By Allah, I seek forgiveness from Allah and
+            repent to Him more than seventy times a day."
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Guide Modal -->
+    <div
+      id="guideModal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[60] flex items-center justify-center p-4 hidden"
+    >
+      <div
+        class="bg-[#0d1117] border border-white/[0.07] w-full max-w-md rounded-2xl p-4 max-h-[85vh] overflow-y-auto space-y-3 soft-shadow"
+      >
+        <div
+          class="flex justify-between items-center border-b border-white/[0.06] pb-2.5"
+        >
+          <h3
+            class="font-semibold text-[13px] text-slate-100 flex items-center gap-1.5"
+          >
+            <i class="fa-solid fa-book-open-reader text-sky-400 text-xs"></i>
+            App Guide & Information
+          </h3>
+          <button
+            id="closeGuideModalBtn"
+            class="text-slate-500 hover:text-slate-100 p-1"
+          >
+            <i class="fa-solid fa-xmark text-sm"></i>
+          </button>
+        </div>
+
+        <div class="space-y-2 text-[10px] text-slate-400 leading-relaxed">
+          <div class="bg-black/20 border border-white/[0.05] rounded-xl p-3 space-y-2.5">
+            <div class="flex gap-2.5 items-start">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-hand-pointer text-[9px] theme-accent-text"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Counting</div>
+                Tap the big circle to count each Istighfar. Use <span class="text-slate-300 font-medium">Undo</span> if you tap by mistake, and <span class="text-slate-300 font-medium">Reset Session</span> to clear the current count without losing your daily total.
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 items-start">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-bullseye text-[9px] text-sky-400"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Setting a Goal</div>
+                Choose a preset goal (100 / 1,000 / 3,000 / 10,000) or set a custom number. The ring around the counter fills as you progress. Completing your goal triggers a celebration. 🎉
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 items-start">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-fire text-[9px] text-orange-400"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Daily Streaks</div>
+                Your streak grows by 1 for every consecutive day you use the app. Opening the app on any new day automatically archives yesterday's count to your activity history.
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 items-start">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-expand text-[9px] text-purple-400"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Focus Mode</div>
+                Tap the <span class="text-slate-300 font-medium">⛶ expand</span> button in the top bar to enter full-screen Focus Mode. Tap anywhere on the screen to count — perfect for hands-free use during prayer.
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 items-start">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-trophy text-[9px] text-yellow-400"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Ranks &amp; Badges</div>
+                Earn 15 ranks (★1–★15) as your lifetime total grows. Unlock 15 milestone badges at key counts (33, 100 … 10,000,000). Tap the <i class="fa-solid fa-trophy text-[8px]"></i> button to see all achievements.
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 items-start">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-cloud-arrow-up text-[9px] text-emerald-400"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Backup &amp; Restore</div>
+                Use <span class="text-slate-300 font-medium">Export</span> to save your data as a <code class="bg-white/[0.06] px-1 rounded text-[9px]">.json</code> file (shared via your phone's share sheet on Android). Use <span class="text-slate-300 font-medium">Import</span> to restore from a backup on a new device.
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 items-start mt-4 pt-3 border-t border-white/[0.06]">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-heart text-[9px] text-rose-400"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Intention (Niyyah)</div>
+                Do not count merely to increase numbers. This app is designed to help you track your goals and stay motivated in remembering Allah. Let your primary intention be to please Allah, not just to reach a high count. May Allah accept our efforts.
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 items-start mt-3">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-code text-[9px] text-slate-400"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Developer</div>
+                Arman Eousuf - <a href="https://github.com/armaneousuf" target="_blank" class="text-sky-400 hover:underline">github.com/armaneousuf</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom Target Modal -->
+    <div
+      id="targetModal"
+      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+    >
+      <div
+        class="bg-[#0d1117] border border-white/[0.07] w-full max-w-xs rounded-2xl p-4 space-y-3 soft-shadow"
+      >
+        <h3 class="font-semibold text-[13px] text-slate-100">
+          Set Custom Goal
+        </h3>
+        <input
+          id="customTargetInput"
+          type="number"
+          min="1"
+          max="1000000"
+          placeholder="Enter target (e.g. 10000)"
+          class="w-full bg-black/20 border border-white/[0.06] rounded-lg p-2.5 text-[12px] text-slate-100 focus:outline-none focus:border-white/20"
+        />
+        <div class="flex justify-end space-x-2">
+          <button
+            id="cancelTargetBtn"
+            class="px-3.5 py-1.5 text-[11px] bg-white/[0.06] rounded-lg text-slate-300"
+          >
+            Cancel
+          </button>
+          <button
+            id="applyTargetBtn"
+            class="px-3.5 py-1.5 text-[11px] theme-accent-bg text-slate-950 font-bold rounded-lg"
+          >
+            Set Goal
+          </button>
+        </div>
+      </div>
+    </div>
+    <script src="script.js"></script>
+  </body>
+</html>
