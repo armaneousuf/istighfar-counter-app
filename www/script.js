@@ -213,7 +213,8 @@ const importFileInput = document.getElementById('importFileInput');
 const fullResetBtn = document.getElementById('fullResetBtn');
 
 // Analytics
-const weeklyChartContainer = document.getElementById('weeklyChartContainer');
+const weeklyChartCanvas = document.getElementById('weeklyChartCanvas');
+let weeklyChartInstance = null;
 const chartTotalLabel = document.getElementById('chartTotalLabel');
 const heatmapGrid = document.getElementById('heatmapGrid');
 const heatmapMonths = document.getElementById('heatmapMonths');
@@ -422,9 +423,11 @@ function renderBadgesList() {
 }
 
 function renderWeeklyChart() {
-  weeklyChartContainer.innerHTML = '';
+  if (!weeklyChartCanvas) return;
+  const ctx = weeklyChartCanvas.getContext('2d');
+  
   const days = [];
-  let maxVal = 1;
+  const counts = [];
   let weeklySum = 0;
 
   for (let i = 6; i >= 0; i--) {
@@ -432,26 +435,70 @@ function renderWeeklyChart() {
     d.setDate(d.getDate() - i);
     const iso = getFormattedDate(d);
     const count = state.dailyHistory[iso] || 0;
-    if (count > maxVal) maxVal = count;
     weeklySum += count;
 
     const dayName = d.toLocaleDateString('en-US', { weekday: 'narrow' });
-    days.push({ dayName, count, iso });
+    days.push(dayName);
+    counts.push(count);
   }
 
   chartTotalLabel.textContent = `${weeklySum.toLocaleString()} total this week`;
 
-  days.forEach(item => {
-    const heightPct = Math.max(8, Math.round((item.count / maxVal) * 100));
-    const col = document.createElement('div');
-    col.className = 'flex-1 flex flex-col items-center gap-1 h-full justify-end';
-    col.innerHTML = `
-      <div class="text-[8px] text-slate-400 font-mono">${item.count > 0 ? item.count : ''}</div>
-      <div class="w-full theme-accent-bg rounded-t opacity-85 transition-all duration-300" style="height: ${heightPct}%"></div>
-      <div class="text-[9px] text-slate-500 font-medium">${item.dayName}</div>
-    `;
-    weeklyChartContainer.appendChild(col);
-  });
+  if (weeklyChartInstance) {
+    weeklyChartInstance.data.labels = days;
+    weeklyChartInstance.data.datasets[0].data = counts;
+    weeklyChartInstance.update();
+  } else {
+    // Make sure Chart is loaded
+    if (typeof Chart === 'undefined') return;
+    
+    weeklyChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [{
+          data: counts,
+          backgroundColor: 'rgba(16, 185, 129, 0.85)',
+          hoverBackgroundColor: 'rgba(52, 211, 153, 1)',
+          borderRadius: 4,
+          borderSkipped: false,
+          barThickness: 'flex',
+          maxBarThickness: 24
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            titleColor: '#94a3b8',
+            bodyColor: '#f8fafc',
+            displayColors: false,
+            callbacks: {
+              title: () => null,
+              label: (ctx) => `${ctx.raw.toLocaleString()} taps`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false, drawBorder: false },
+            ticks: { color: '#64748b', font: { size: 9, family: 'monospace' } },
+            border: { display: false }
+          },
+          y: {
+            display: false,
+            min: 0
+          }
+        },
+        animation: {
+          duration: 400
+        }
+      }
+    });
+  }
 }
 
 function renderHeatmap() {

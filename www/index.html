@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
-    <title>Istighfar Counter v2.2 - Journey to Light</title>
+    <title>Istighfar Counter v3.0 - Journey to Light</title>
 
     <!-- PWA Manifest & Mobile Theme Support -->
     <link rel="manifest" href="manifest.json" />
@@ -285,7 +285,7 @@
           <h1
             class="text-[13px] font-semibold text-slate-100 leading-tight truncate"
           >
-            Istighfar v2.2
+            Istighfar v3.0
           </h1>
           <p id="rankSubtitle" class="text-[10px] text-slate-500 truncate">
             Novice Seeker • 0 XP
@@ -664,10 +664,9 @@
           <div
             class="bg-black/30 p-3 rounded-xl border border-white/[0.05] h-32 flex flex-col justify-end"
           >
-            <div
-              id="weeklyChartContainer"
-              class="flex items-end justify-between gap-2 h-20 w-full"
-            ></div>
+            <div class="h-full w-full relative">
+              <canvas id="weeklyChartCanvas"></canvas>
+            </div>
           </div>
         </div>
 
@@ -1067,6 +1066,7 @@
         </div>
       </div>
     </div>
+    <script src="lib/chart.umd.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

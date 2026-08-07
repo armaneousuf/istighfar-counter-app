@@ -1,0 +1,27 @@
+- `[x]` Feature 1: IndexedDB Migration
+  - `[x]` Add UI loading and error states to `index.html`
+  - `[x]` Update `script.js` to initialize IndexedDB asynchronously
+  - `[x]` Implement lossless migration from `ISTIGHFAR_APP_DATA_V4` local storage
+  - `[x]` Convert `saveState()` and `loadState()` usages
+  - `[x]` Commit and pause for user verification
+- `[x]` Feature 2: Chart.js Weekly Chart
+  - `[x]` Install chart.js via npm and bundle to `www/lib/`
+  - `[x]` Update `index.html` to load chart.js script tag correctly and add canvas
+  - `[x]` Rewrite `renderWeeklyChart()` in `script.js`
+  - `[ ]` Commit and pause for user verification
+- `[ ]` Feature 3: Prayer Times (Adhan.js)
+  - `[ ]` Install adhan via npm and bundle to `www/lib/`
+  - `[ ]` Update `index.html` with script tag, Prayer Times UI card, and Settings dropdown
+  - `[ ]` Implement calculation logic with Karachi+Hanafi default in `script.js`
+  - `[ ]` Implement prohibited windows logic
+  - `[ ]` Request Geolocation and handle fallbacks
+  - `[ ]` Commit and pause for user verification
+- `[ ]` Feature 4: Local Notifications
+  - `[ ]` Install `@capacitor/local-notifications`
+  - `[ ]` Update Android manifest permissions
+  - `[ ]` Add Settings UI for Daily Reminder
+  - `[ ]` Implement notification scheduling logic
+  - `[ ]` Commit and pause for user verification
+- `[ ]` Feature 5: Versioning updates
+  - `[ ]` Update `build.gradle`, `capacitor.config.json`, and `index.html` version numbers
+- `[ ]` Final Build and verification
