@@ -227,9 +227,6 @@
       }
       #focusOverlay {
         touch-action: manipulation;
-      }
-      #focusOverlay {
-        touch-action: manipulation;
         -webkit-user-select: none;
         user-select: none;
       }
@@ -253,6 +250,7 @@
         <div id="loadingErrorText" class="text-xs text-slate-400">Unable to load your saved progress.</div>
       </div>
     </div>
+
     <!-- Header -->
     <header
       class="w-full max-w-md mx-auto px-3.5 py-2.5 flex justify-between items-center border-b border-white/[0.06]"
@@ -296,6 +294,13 @@
       <!-- Action buttons -->
       <div class="flex items-center space-x-1 shrink-0">
         <button
+          id="anonymousBtn"
+          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
+          title="Anonymous Mode (No Saving)"
+        >
+          <i class="fa-solid fa-user-secret text-xs"></i>
+        </button>
+        <button
           id="focusBtn"
           class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
           title="Focus Mode (Full Screen)"
@@ -330,6 +335,18 @@
     <main
       class="flex-1 w-full max-w-md mx-auto px-3.5 py-2.5 flex flex-col justify-between items-center relative"
     >
+      <!-- Anonymous Mode Active Banner -->
+      <div
+        id="anonymousBanner"
+        class="hidden w-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-semibold py-1.5 px-3 rounded-xl flex items-center justify-between mb-1 transition-all"
+      >
+        <span class="flex items-center gap-1.5">
+          <i class="fa-solid fa-user-secret text-amber-400"></i>
+          <span>Anonymous Mode Active — Taps are not being saved</span>
+        </span>
+        <button id="exitAnonymousBtn" class="text-amber-400 hover:text-amber-200 underline text-[9px] font-bold">Exit</button>
+      </div>
+
       <!-- Toast Notification -->
       <div
         id="toastNotification"
@@ -774,7 +791,6 @@
               <i class="fa-solid fa-upload text-xs text-emerald-400"></i>
               <span>Import</span>
             </button>
-            <!-- Hidden file input — triggered programmatically for Android compatibility -->
             <input
               type="file"
               id="importFileInput"
@@ -808,7 +824,6 @@
 
       </div>
     </div>
-
 
     <!-- Achievements Modal -->
     <div
@@ -954,6 +969,16 @@
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Counting</div>
                 Tap the big circle to count each Istighfar. Use <span class="text-slate-300 font-medium">Undo</span> if you tap by mistake, and <span class="text-slate-300 font-medium">Reset Session</span> to clear the current count without losing your daily total.
+              </div>
+            </div>
+
+            <div class="flex gap-2.5 items-start">
+              <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
+                <i class="fa-solid fa-user-secret text-[9px] text-amber-400"></i>
+              </div>
+              <div>
+                <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Anonymous Mode</div>
+                Tap the <i class="fa-solid fa-user-secret text-[9px] text-amber-400"></i> icon in the header to enter Anonymous Mode. Count freely without saving progress, streaks, or history.
               </div>
             </div>
 
