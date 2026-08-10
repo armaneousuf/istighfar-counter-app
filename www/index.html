@@ -22,10 +22,6 @@
     />
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link
-      rel="stylesheet"
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
-    />
     <style>
       @import url("https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap");
 
@@ -45,6 +41,10 @@
         --accent-glow: rgba(16, 185, 129, 0.3);
         --border-color: rgba(16, 185, 129, 0.2);
         --card-bg: #0a1710;
+      }
+
+      html, body {
+        height: 100%;
       }
 
       body {
@@ -89,6 +89,16 @@
       }
       .tap-btn:active {
         transform: scale(0.95);
+      }
+
+      .icon-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .icon-btn svg {
+        width: 15px;
+        height: 15px;
       }
 
       @keyframes floatUp {
@@ -159,7 +169,8 @@
       }
 
       /* Tooltip styling */
-      .hm-cell[data-tooltip]:hover::after {
+      .hm-cell[data-tooltip]:hover::after,
+      .streak-dot[data-tooltip]:hover::after {
         content: attr(data-tooltip);
         position: absolute;
         bottom: 125%;
@@ -222,6 +233,7 @@
         overflow: hidden;
       }
       body.focus-mode header,
+      body.focus-mode #bottomNav,
       body.focus-mode .hide-in-focus {
         display: none !important;
       }
@@ -229,6 +241,149 @@
         touch-action: manipulation;
         -webkit-user-select: none;
         user-select: none;
+      }
+
+      /* Anonymous Mode simplification */
+      body.anonymous-mode .hide-in-anonymous {
+        display: none !important;
+      }
+      body.anonymous-mode .nav-btn:not([data-view="home"]) {
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      /* Views */
+      .view {
+        animation: fadeIn 0.18s ease;
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
+      /* Bottom Nav */
+      #bottomNav {
+        display: flex;
+        border-top: 1px solid rgba(255, 255, 255, 0.06);
+        background: rgba(8, 12, 10, 0.85);
+        backdrop-filter: blur(14px);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        flex-shrink: 0;
+      }
+      .nav-btn {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 3px;
+        padding: 8px 2px 7px;
+        color: #64748b;
+        transition: color 0.2s ease;
+        position: relative;
+      }
+      .nav-btn svg {
+        width: 18px;
+        height: 18px;
+      }
+      .nav-btn span {
+        font-size: 9px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+      }
+      .nav-btn.active {
+        color: var(--accent-color);
+      }
+      .nav-btn.active::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        width: 22px;
+        height: 2px;
+        border-radius: 2px;
+        background: var(--accent-color);
+      }
+
+      /* Goal chip */
+      .goal-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        color: #cbd5e1;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .goal-chip svg {
+        width: 12px;
+        height: 12px;
+        color: var(--accent-color);
+      }
+
+      /* Streaks view flame */
+      .streak-flame-wrap {
+        width: 132px;
+        height: 132px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(circle, rgba(249, 115, 22, 0.16) 0%, transparent 70%);
+        border: 1px solid rgba(249, 115, 22, 0.2);
+      }
+      .streak-flame-wrap svg {
+        width: 56px;
+        height: 56px;
+        color: #fb923c;
+        filter: drop-shadow(0 0 14px rgba(251, 146, 60, 0.45));
+      }
+      .streak-dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        font-weight: 700;
+        position: relative;
+      }
+
+      /* Modal (guide / info / target) */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(2, 6, 12, 0.8);
+        backdrop-filter: blur(10px);
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+      .modal-panel {
+        background: #0d1117;
+        border: 1px solid rgba(255, 255, 255, 0.07);
+        width: 100%;
+        border-radius: 1rem;
+        padding: 1rem;
+        box-shadow:
+          0 8px 24px -8px rgba(0, 0, 0, 0.45),
+          0 2px 8px -2px rgba(0, 0, 0, 0.3);
+      }
+
+      /* Prayers placeholder rows */
+      .prayer-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 12px;
+        border-radius: 0.75rem;
+        background: rgba(255, 255, 255, 0.025);
+        border: 1px solid rgba(255, 255, 255, 0.05);
       }
     </style>
   </head>
@@ -245,19 +400,19 @@
         <div class="text-sm text-slate-300 font-medium">Loading your journey...</div>
       </div>
       <div id="loadingError" class="hidden flex flex-col items-center px-6 text-center max-w-sm">
-        <i class="fa-solid fa-triangle-exclamation text-rose-500 text-3xl mb-3"></i>
+        <svg viewBox="0 0 24 24" class="w-8 h-8 text-rose-500 mb-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L1 21h22L12 2z"/><path d="M12 9v5M12 17h.01"/></svg>
         <div class="text-sm text-rose-400 font-bold mb-1">Data Load Error</div>
         <div id="loadingErrorText" class="text-xs text-slate-400">Unable to load your saved progress.</div>
       </div>
     </div>
 
-    <!-- Header -->
+    <!-- Topbar: brand + focus + anonymous only -->
     <header
-      class="w-full max-w-md mx-auto px-3.5 py-2.5 flex justify-between items-center border-b border-white/[0.06]"
+      class="w-full max-w-md mx-auto px-3.5 py-2.5 flex justify-between items-center border-b border-white/[0.06] shrink-0"
     >
       <div class="flex items-center space-x-2 min-w-0">
         <div
-          class="w-8 h-8 rounded-lg bg-white/[0.04] border theme-accent-border flex items-center justify-center relative soft-shadow-sm shrink-0"
+          class="w-8 h-8 rounded-lg bg-white/[0.04] border theme-accent-border flex items-center justify-center soft-shadow-sm shrink-0"
         >
           <svg
             viewBox="0 0 24 24"
@@ -273,414 +428,316 @@
             <circle cx="3.6" cy="10.6" r="1.5" fill="currentColor" />
             <circle cx="7.8" cy="4.9" r="1.5" fill="currentColor" />
           </svg>
-          <span
-            id="levelBadge"
-            class="absolute -bottom-1 -right-1 text-[8px] font-bold theme-accent-bg text-slate-950 px-1 py-0 rounded-full border border-slate-950/80 leading-tight"
-            >★1</span
-          >
         </div>
-        <div class="min-w-0">
-          <h1
-            class="text-[13px] font-semibold text-slate-100 leading-tight truncate"
-          >
-            Istighfar v3.0
-          </h1>
-          <p id="rankSubtitle" class="text-[10px] text-slate-500 truncate">
-            Novice Seeker • 0 XP
-          </p>
-        </div>
+        <h1
+          class="text-[13px] font-semibold text-slate-100 leading-tight truncate"
+        >
+          Istighfar v3.0
+        </h1>
       </div>
 
-      <!-- Action buttons -->
+      <!-- Action buttons: focus + anonymous only -->
       <div class="flex items-center space-x-1 shrink-0">
         <button
           id="anonymousBtn"
-          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
+          class="icon-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
           title="Anonymous Mode (No Saving)"
         >
-          <i class="fa-solid fa-user-secret text-xs"></i>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a21.8 21.8 0 015.06-6.06M9.9 4.24A10.94 10.94 0 0112 4c7 0 11 8 11 8a21.7 21.7 0 01-3.22 4.44M1 1l22 22"/><path d="M14.12 14.12a3 3 0 11-4.24-4.24"/></svg>
         </button>
         <button
           id="focusBtn"
-          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
+          class="icon-btn p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
           title="Focus Mode (Full Screen)"
         >
-          <i class="fa-solid fa-expand text-xs"></i>
-        </button>
-        <button
-          id="milestonesBtn"
-          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
-          title="Achievements"
-        >
-          <i class="fa-solid fa-trophy text-xs theme-accent-text"></i>
-        </button>
-        <button
-          id="infoBtn"
-          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
-          title="Virtues & Duas"
-        >
-          <i class="fa-solid fa-book-open text-xs"></i>
-        </button>
-        <button
-          id="settingsBtn"
-          class="p-2 rounded-lg bg-white/[0.03] border border-white/[0.06] text-slate-400 hover:text-slate-100 hover:bg-white/[0.06] transition"
-          title="Insights & Settings"
-        >
-          <i class="fa-solid fa-sliders text-xs text-slate-300"></i>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg>
         </button>
       </div>
     </header>
 
-    <!-- Main Container -->
-    <main
-      class="flex-1 w-full max-w-md mx-auto px-3.5 py-2.5 flex flex-col justify-between items-center relative"
-    >
-      <!-- Anonymous Mode Active Banner -->
-      <div
-        id="anonymousBanner"
-        class="hidden w-full bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-semibold py-1.5 px-3 rounded-xl flex items-center justify-between mb-1 transition-all"
-      >
-        <span class="flex items-center gap-1.5">
-          <i class="fa-solid fa-user-secret text-amber-400"></i>
-          <span>Anonymous Mode Active — Taps are not being saved</span>
-        </span>
-        <button id="exitAnonymousBtn" class="text-amber-400 hover:text-amber-200 underline text-[9px] font-bold">Exit</button>
-      </div>
-
-      <!-- Toast Notification -->
-      <div
-        id="toastNotification"
-        class="absolute top-1.5 z-30 inset-x-3 bg-slate-900/95 border theme-accent-border text-slate-100 p-2.5 rounded-xl soft-shadow flex items-center space-x-2.5 hidden transition-all duration-300 backdrop-blur-md"
-      >
-        <div
-          id="toastIcon"
-          class="w-9 h-9 rounded-lg theme-accent-bg text-slate-950 flex items-center justify-center flex-shrink-0"
-        ></div>
-        <div class="flex-1 min-w-0">
-          <div
-            id="toastTitle"
-            class="text-[10px] font-bold uppercase tracking-wide theme-accent-text"
-          >
-            Milestone Unlocked!
-          </div>
-          <div id="toastDesc" class="text-[11px] text-slate-300 truncate">
-            Reached 1,000 Istighfar
-          </div>
-        </div>
-      </div>
-
-      <!-- Istighfar Selector & Phrase Display -->
-      <div class="w-full text-center space-y-1.5 mt-0.5">
-        <div class="relative inline-block w-full hide-in-focus">
-          <select
-            id="duaSelect"
-            class="w-full bg-white/[0.03] border border-white/[0.06] theme-accent-text font-medium text-[11px] rounded-lg px-3 py-2 appearance-none focus:outline-none cursor-pointer text-center pr-8"
-          >
-            <option value="1">Astaghfirullah (أَسْتَغْفِرُ اللَّهَ)</option>
-            <option value="2">Astaghfirullah wa Atubu Ilaih</option>
-            <option value="3">Sayyidul Istighfar (Master Invocation)</option>
-            <option value="4">Rabbighfir li wa tub 'alayya</option>
-          </select>
-          <div
-            class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500"
-          >
-            <i class="fa-solid fa-chevron-down text-[10px]"></i>
-          </div>
-        </div>
-
-        <!-- Phrase Card -->
-        <div
-          class="bg-white/[0.025] border border-white/[0.05] rounded-xl p-2.5 soft-shadow-sm backdrop-blur-sm min-h-[72px] flex flex-col justify-center"
-        >
-          <p
-            id="arabicText"
-            class="font-arabic text-2xl text-slate-100 leading-relaxed font-bold"
-          >
-            أَسْتَغْفِرُ اللَّهَ
-          </p>
-          <p
-            id="transliterationText"
-            class="text-[10px] text-slate-400 italic mt-0.5"
-          >
-            "I seek forgiveness from Allah"
-          </p>
-        </div>
-      </div>
-
-      <!-- Tap Circle Region -->
-      <div
-        class="my-auto py-2 flex flex-col items-center justify-center w-full relative"
-      >
-        <div class="relative flex items-center justify-center">
-          <svg class="w-72 h-72 transform -rotate-90">
-            <circle
-              cx="144"
-              cy="144"
-              r="124"
-              stroke="currentColor"
-              stroke-width="10"
-              class="text-white/[0.05]"
-              fill="transparent"
-            />
-            <circle
-              id="progressRing"
-              cx="144"
-              cy="144"
-              r="124"
-              stroke="currentColor"
-              stroke-width="10"
-              stroke-dasharray="779.11"
-              stroke-dashoffset="779.11"
-              stroke-linecap="round"
-              class="theme-accent-text transition-all duration-300"
-              fill="transparent"
-            />
-          </svg>
-
-          <button
-            id="tapBtn"
-            class="tap-btn absolute w-56 h-56 rounded-full bg-gradient-to-br from-white/[0.05] to-black/30 border theme-accent-border soft-shadow flex flex-col items-center justify-center cursor-pointer group focus:outline-none"
-          >
-            <span
-              id="counterDisplay"
-              class="text-5xl font-extrabold tracking-tight text-slate-100 transition-transform"
-              >0</span
-            >
-            <span
-              class="text-[10px] text-slate-400 uppercase tracking-widest mt-1 font-semibold"
-              >Taps</span
-            >
-            <span
-              id="targetLabel"
-              class="text-[11px] theme-accent-text mt-2 bg-black/40 px-3 py-0.5 rounded-full border border-white/[0.08] font-semibold"
-            >
-              0% • Goal 1,000
-            </span>
-          </button>
-
-          <div
-            id="floatContainer"
-            class="absolute inset-0 pointer-events-none flex items-center justify-center z-20"
-          ></div>
-        </div>
-      </div>
-
-      <!-- Controls Toolbar -->
-      <div class="w-full space-y-2 hide-in-focus">
-        <!-- Preset Goals Pills -->
-        <div
-          class="flex justify-between items-center bg-white/[0.03] p-1 rounded-xl border border-white/[0.05]"
-        >
-          <span class="text-[10px] text-slate-500 font-medium pl-1.5"
-            >Goal:</span
-          >
-          <div class="flex space-x-1">
-            <button
-              class="target-btn px-2 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition"
-              data-target="100"
-            >
-              100
-            </button>
-            <button
-              class="target-btn px-2 py-1 text-[10px] font-semibold rounded-lg theme-accent-bg text-slate-950 font-bold transition"
-              data-target="1000"
-            >
-              1,000
-            </button>
-            <button
-              class="target-btn px-2 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition"
-              data-target="3000"
-            >
-              3,000
-            </button>
-            <button
-              class="target-btn px-2 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition"
-              data-target="10000"
-            >
-              10,000
-            </button>
-            <button
-              id="customTargetBtn"
-              class="px-1.5 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition"
-            >
-              Custom
-            </button>
-          </div>
-        </div>
-
-        <!-- Action Buttons -->
-        <div class="grid grid-cols-2 gap-1.5">
-          <button
-            id="undoBtn"
-            class="flex items-center justify-center space-x-1 py-1.5 px-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] text-slate-400 text-[10px] font-medium rounded-lg transition"
-          >
-            <i class="fa-solid fa-rotate-left text-[10px]"></i>
-            <span>Undo</span>
-          </button>
-
-          <button
-            id="resetBtn"
-            class="flex items-center justify-center space-x-1 py-1.5 px-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] text-rose-400/80 text-[10px] font-medium rounded-lg transition"
-          >
-            <i class="fa-solid fa-arrows-rotate text-[10px]"></i>
-            <span>Reset Session</span>
-          </button>
-        </div>
-
-        <!-- Lifetime Stats Cards -->
-        <div class="grid grid-cols-2 gap-1.5">
-          <div
-            class="bg-white/[0.025] border border-white/[0.05] rounded-lg p-1.5 flex flex-col items-center justify-center text-center"
-          >
-            <div class="text-[8px] text-slate-500 uppercase font-medium">
-              Today
-            </div>
-            <div
-              id="todayTotalDisplay"
-              class="text-[11px] font-semibold text-slate-100"
-            >
-              0
-            </div>
-          </div>
-
-          <div
-            class="bg-white/[0.025] border border-white/[0.05] rounded-lg p-1.5 flex flex-col items-center justify-center text-center"
-          >
-            <div class="text-[8px] text-slate-500 uppercase font-medium">
-              Lifetime
-            </div>
-            <div
-              id="lifetimeTotalDisplay"
-              class="text-[11px] font-semibold theme-accent-text"
-            >
-              0
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
-
-    <!-- Full-Screen Tap Area Overlay for Focus Mode -->
+    <!-- Anonymous Mode Active Banner (visible across all views while active) -->
     <div
-      id="focusOverlay"
-      class="fixed inset-0 z-40 hidden cursor-pointer flex flex-col justify-between p-4 pointer-events-auto"
+      id="anonymousBanner"
+      class="hidden w-full max-w-md mx-auto bg-amber-500/10 border border-amber-500/20 text-amber-300 text-[10px] font-semibold py-1.5 px-3.5 flex items-center justify-between transition-all shrink-0"
     >
-      <div class="flex justify-between items-center w-full max-w-md mx-auto">
-        <span
-          class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold flex items-center gap-1.5"
-        >
-          <i
-            class="fa-solid fa-circle text-[6px] theme-accent-text animate-pulse"
-          ></i>
-          Focus Mode
-        </span>
-        <button
-          id="exitFocusBtn"
-          class="p-2 rounded-full bg-black/40 border border-white/10 text-slate-400 hover:text-slate-100 transition backdrop-blur-md"
-        >
-          <i class="fa-solid fa-compress text-sm"></i>
-        </button>
-      </div>
+      <span class="flex items-center gap-1.5">
+        <svg viewBox="0 0 24 24" class="w-3 h-3 text-amber-400 shrink-0" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a21.8 21.8 0 015.06-6.06M9.9 4.24A10.94 10.94 0 0112 4c7 0 11 8 11 8a21.7 21.7 0 01-3.22 4.44M1 1l22 22"/><path d="M14.12 14.12a3 3 0 11-4.24-4.24"/></svg>
+        <span>Anonymous Mode — taps aren't being saved</span>
+      </span>
+      <button id="exitAnonymousBtn" class="text-amber-400 hover:text-amber-200 underline text-[9px] font-bold shrink-0 ml-2">Exit</button>
+    </div>
+
+    <!-- Toast Notification -->
+    <div
+      id="toastNotification"
+      class="absolute top-1.5 z-30 inset-x-3 max-w-md mx-auto bg-slate-900/95 border theme-accent-border text-slate-100 p-2.5 rounded-xl soft-shadow flex items-center space-x-2.5 hidden transition-all duration-300 backdrop-blur-md"
+    >
       <div
-        class="text-center text-[10px] text-slate-500 uppercase tracking-widest font-medium pointer-events-none"
-      >
-        Tap anywhere to count
+        id="toastIcon"
+        class="w-9 h-9 rounded-lg theme-accent-bg text-slate-950 flex items-center justify-center flex-shrink-0"
+      ></div>
+      <div class="flex-1 min-w-0">
+        <div
+          id="toastTitle"
+          class="text-[10px] font-bold uppercase tracking-wide theme-accent-text"
+        >
+          Milestone Unlocked!
+        </div>
+        <div id="toastDesc" class="text-[11px] text-slate-300 truncate">
+          Reached 1,000 Istighfar
+        </div>
       </div>
     </div>
 
-    <!-- Insights & Settings Modal -->
-    <div
-      id="settingsModal"
-      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
-    >
-      <div
-        class="bg-[#0d1117] border border-white/[0.08] w-full max-w-md rounded-2xl p-4 max-h-[88vh] overflow-y-auto space-y-4 soft-shadow"
-      >
+    <!-- View Container -->
+    <div id="viewContainer" class="flex-1 w-full max-w-md mx-auto overflow-y-auto">
+
+      <!-- ============ HOME VIEW ============ -->
+      <main id="view-home" class="view px-3.5 py-2.5 flex flex-col justify-between items-center min-h-full">
+
+        <!-- Istighfar Selector & Phrase Display -->
+        <div class="w-full text-center space-y-1.5 mt-0.5">
+          <div class="relative inline-block w-full hide-in-focus hide-in-anonymous">
+            <select
+              id="duaSelect"
+              class="w-full bg-white/[0.03] border border-white/[0.06] theme-accent-text font-medium text-[11px] rounded-lg px-3 py-2 appearance-none focus:outline-none cursor-pointer text-center pr-8"
+            >
+              <option value="1">Astaghfirullah (أَسْتَغْفِرُ اللَّهَ)</option>
+              <option value="2">Astaghfirullah wa Atubu Ilaih</option>
+              <option value="3">Sayyidul Istighfar (Master Invocation)</option>
+              <option value="4">Rabbighfir li wa tub 'alayya</option>
+            </select>
+            <div
+              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500"
+            >
+              <svg viewBox="0 0 24 24" class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+            </div>
+          </div>
+
+          <!-- Phrase Card -->
+          <div
+            class="bg-white/[0.025] border border-white/[0.05] rounded-xl p-2.5 soft-shadow-sm backdrop-blur-sm min-h-[72px] flex flex-col justify-center"
+          >
+            <p
+              id="arabicText"
+              class="font-arabic text-2xl text-slate-100 leading-relaxed font-bold"
+            >
+              أَسْتَغْفِرُ اللَّهَ
+            </p>
+            <p
+              id="transliterationText"
+              class="text-[10px] text-slate-400 italic mt-0.5"
+            >
+              "I seek forgiveness from Allah"
+            </p>
+          </div>
+        </div>
+
+        <!-- Tap Circle Region -->
         <div
-          class="flex justify-between items-center border-b border-white/[0.06] pb-2.5"
+          class="my-auto py-2 flex flex-col items-center justify-center w-full relative"
         >
-          <h3
-            class="font-semibold text-[13px] text-slate-100 flex items-center gap-2"
-          >
-            <i class="fa-solid fa-sliders theme-accent-text"></i> Insights &
-            Settings
-          </h3>
-          <button
-            id="closeSettingsModal"
-            class="text-slate-500 hover:text-slate-100 p-1"
-          >
-            <i class="fa-solid fa-xmark text-sm"></i>
-          </button>
+          <div class="relative flex items-center justify-center">
+            <svg class="w-72 h-72 transform -rotate-90">
+              <circle
+                cx="144"
+                cy="144"
+                r="124"
+                stroke="currentColor"
+                stroke-width="10"
+                class="text-white/[0.05]"
+                fill="transparent"
+              />
+              <circle
+                id="progressRing"
+                cx="144"
+                cy="144"
+                r="124"
+                stroke="currentColor"
+                stroke-width="10"
+                stroke-dasharray="779.11"
+                stroke-dashoffset="779.11"
+                stroke-linecap="round"
+                class="theme-accent-text transition-all duration-300"
+                fill="transparent"
+              />
+            </svg>
+
+            <button
+              id="tapBtn"
+              class="tap-btn absolute w-56 h-56 rounded-full bg-gradient-to-br from-white/[0.05] to-black/30 border theme-accent-border soft-shadow flex flex-col items-center justify-center cursor-pointer group focus:outline-none"
+            >
+              <span
+                id="counterDisplay"
+                class="text-5xl font-extrabold tracking-tight text-slate-100 transition-transform"
+                >0</span
+              >
+              <span
+                class="text-[10px] text-slate-400 uppercase tracking-widest mt-1 font-semibold"
+                >Taps</span
+              >
+              <span
+                id="targetLabel"
+                class="text-[11px] theme-accent-text mt-2 bg-black/40 px-3 py-0.5 rounded-full border border-white/[0.08] font-semibold"
+              >
+                0% • Goal 1,000
+              </span>
+            </button>
+
+            <div
+              id="floatContainer"
+              class="absolute inset-0 pointer-events-none flex items-center justify-center z-20"
+            ></div>
+          </div>
+        </div>
+
+        <!-- Controls Toolbar -->
+        <div class="w-full space-y-2 hide-in-focus">
+          <!-- Goal chip -->
+          <div class="flex justify-center hide-in-anonymous">
+            <button id="goalChipBtn" class="goal-chip tap-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+              <span>Goal: <span id="goalChipValue">1,000</span></span>
+              <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="grid grid-cols-2 gap-1.5">
+            <button
+              id="undoBtn"
+              class="flex items-center justify-center space-x-1 py-1.5 px-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] text-slate-400 text-[10px] font-medium rounded-lg transition"
+            >
+              <svg viewBox="0 0 24 24" class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l-5-5 5-5"/><path d="M4 9h10.5A5.5 5.5 0 0120 14.5v0A5.5 5.5 0 0114.5 20H8"/></svg>
+              <span>Undo</span>
+            </button>
+
+            <button
+              id="resetBtn"
+              class="hide-in-anonymous flex items-center justify-center space-x-1 py-1.5 px-2 bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] text-rose-400/80 text-[10px] font-medium rounded-lg transition"
+            >
+              <svg viewBox="0 0 24 24" class="w-2.5 h-2.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-3-6.7"/><path d="M21 3v6h-6"/></svg>
+              <span>Reset Session</span>
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- ============ PRAYERS VIEW (placeholder, adhan.js wiring later) ============ -->
+      <div id="view-prayers" class="view hidden px-3.5 py-3 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-[13px] font-semibold text-slate-100 flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 theme-accent-text" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 3h-4l2-3z"/><path d="M5 21V11a7 7 0 0114 0v10"/><path d="M9 21v-5a3 3 0 016 0v5"/><path d="M3 21h18"/></svg>
+            Prayer Times
+          </h2>
+          <span class="text-[9px] text-slate-500 font-medium uppercase tracking-wide bg-white/[0.04] border border-white/[0.06] px-2 py-1 rounded-full">Coming soon</span>
+        </div>
+
+        <p class="text-[10px] text-slate-500 leading-relaxed">
+          Prayer times will be calculated locally with adhan.js — no network needed. This screen is wired up and ready; the calculation engine lands in a future update.
+        </p>
+
+        <div id="prayerList" class="space-y-1.5">
+          <div class="prayer-row">
+            <span class="flex items-center gap-2 text-[11px] font-medium text-slate-300">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              Fajr
+            </span>
+            <span class="text-[11px] text-slate-500 font-mono">--:--</span>
+          </div>
+          <div class="prayer-row">
+            <span class="flex items-center gap-2 text-[11px] font-medium text-slate-300">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              Dhuhr
+            </span>
+            <span class="text-[11px] text-slate-500 font-mono">--:--</span>
+          </div>
+          <div class="prayer-row">
+            <span class="flex items-center gap-2 text-[11px] font-medium text-slate-300">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              Asr
+            </span>
+            <span class="text-[11px] text-slate-500 font-mono">--:--</span>
+          </div>
+          <div class="prayer-row">
+            <span class="flex items-center gap-2 text-[11px] font-medium text-slate-300">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              Maghrib
+            </span>
+            <span class="text-[11px] text-slate-500 font-mono">--:--</span>
+          </div>
+          <div class="prayer-row">
+            <span class="flex items-center gap-2 text-[11px] font-medium text-slate-300">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+              Isha
+            </span>
+            <span class="text-[11px] text-slate-500 font-mono">--:--</span>
+          </div>
+        </div>
+
+        <button id="locationPermBtn" class="w-full py-2.5 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-300 text-[11px] font-medium rounded-xl transition flex items-center justify-center gap-1.5" disabled>
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Set Location (coming soon)</span>
+        </button>
+      </div>
+
+      <!-- ============ INSIGHTS VIEW ============ -->
+      <div id="view-insights" class="view hidden px-3.5 py-3 space-y-4">
+        <h2 class="text-[13px] font-semibold text-slate-100 flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 theme-accent-text" fill="currentColor"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="16" y="9" width="4" height="11" rx="1"/></svg>
+          Insights
+        </h2>
+
+        <!-- Rank Card -->
+        <div class="bg-black/20 p-2.5 rounded-xl border border-white/[0.05] space-y-1.5">
+          <div class="flex justify-between items-center text-[11px]">
+            <span class="font-semibold text-slate-100" id="modalLevelTitle">Rank 1 • Novice Seeker</span>
+            <span class="theme-accent-text font-semibold" id="modalXpText">0 XP</span>
+          </div>
+          <div class="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden">
+            <div id="xpProgressBar" class="theme-accent-bg h-full transition-all duration-500" style="width: 0%"></div>
+          </div>
+          <p id="nextLevelLabel" class="text-[9px] text-slate-500 text-right">500 XP until Rank 2</p>
         </div>
 
         <!-- Quick Stats -->
-        <div class="grid grid-cols-4 gap-1.5 text-center">
+        <div class="grid grid-cols-3 gap-1.5 text-center">
           <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
-            <div
-              id="statTotalIstighfar"
-              class="text-[13px] font-bold text-slate-100"
-            >
-              0
-            </div>
-            <div
-              class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
-            >
-              Lifetime
-            </div>
+            <div id="lifetimeTotalDisplay" class="text-[13px] font-bold text-slate-100">0</div>
+            <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">Lifetime</div>
           </div>
           <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
-            <div id="statStreak" class="text-[13px] font-bold text-slate-100">
-              1
-            </div>
-            <div
-              class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
-            >
-              Streak
-            </div>
+            <div id="todayTotalDisplay" class="text-[13px] font-bold text-slate-100">0</div>
+            <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">Today</div>
           </div>
           <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
-            <div id="stat1kCount" class="text-[13px] font-bold text-slate-100">
-              0
-            </div>
-            <div
-              class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
-            >
-              1k Done
-            </div>
+            <div id="statStreak" class="text-[13px] font-bold text-slate-100">1</div>
+            <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">Streak</div>
           </div>
           <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
-            <div
-              id="statBadgesEarned"
-              class="text-[13px] font-bold text-slate-100"
-            >
-              0/15
-            </div>
-            <div
-              class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
-            >
-              Badges
-            </div>
+            <div id="statBestStreak" class="text-[13px] font-bold text-slate-100">1</div>
+            <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">Best Streak</div>
+          </div>
+          <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
+            <div id="stat1kCount" class="text-[13px] font-bold text-slate-100">0</div>
+            <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">1k Done</div>
+          </div>
+          <div class="bg-black/20 p-2 rounded-xl border border-white/[0.05]">
+            <div id="statBadgesEarned" class="text-[13px] font-bold text-slate-100">0/15</div>
+            <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">Badges</div>
           </div>
         </div>
 
         <!-- Weekly Bar Chart -->
         <div class="space-y-1.5">
-          <div
-            class="text-[11px] font-semibold text-slate-300 flex justify-between items-center"
-          >
-            <span class="flex items-center gap-1.5"
-              ><i
-                class="fa-solid fa-chart-simple text-[10px] text-slate-500"
-              ></i>
-              Last 7 Days</span
-            >
-            <span id="chartTotalLabel" class="text-[10px] theme-accent-text"
-              >0 total</span
-            >
+          <div class="text-[11px] font-semibold text-slate-300 flex justify-between items-center">
+            <span class="flex items-center gap-1.5">
+              <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-500" fill="currentColor"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="16" y="9" width="4" height="11" rx="1"/></svg>
+              Last 7 Days
+            </span>
+            <span id="chartTotalLabel" class="text-[10px] theme-accent-text">0 total</span>
           </div>
-          <div
-            class="bg-black/30 p-3 rounded-xl border border-white/[0.05] h-32 flex flex-col justify-end"
-          >
+          <div class="bg-black/30 p-3 rounded-xl border border-white/[0.05] h-32 flex flex-col justify-end">
             <div class="h-full w-full relative">
               <canvas id="weeklyChartCanvas"></canvas>
             </div>
@@ -689,245 +746,216 @@
 
         <!-- GitHub-Style Heatmap Grid -->
         <div class="space-y-1.5">
-          <div
-            class="text-[11px] font-semibold text-slate-300 flex justify-between items-center"
-          >
-            <span class="flex items-center gap-1.5"
-              ><i
-                class="fa-solid fa-calendar-days text-[10px] text-slate-500"
-              ></i>
-              Activity History</span
-            >
-
+          <div class="text-[11px] font-semibold text-slate-300 flex justify-between items-center">
+            <span class="flex items-center gap-1.5">
+              <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              Activity History
+            </span>
             <div class="flex items-center gap-1 text-[8px] text-slate-500">
               <span>Less</span>
-              <span
-                class="w-2 h-2 rounded-[1px] hm-level-0 inline-block"
-              ></span>
-              <span
-                class="w-2 h-2 rounded-[1px] hm-level-1 inline-block"
-              ></span>
-              <span
-                class="w-2 h-2 rounded-[1px] hm-level-2 inline-block"
-              ></span>
-              <span
-                class="w-2 h-2 rounded-[1px] hm-level-3 inline-block"
-              ></span>
-              <span
-                class="w-2 h-2 rounded-[1px] hm-level-4 inline-block"
-              ></span>
+              <span class="w-2 h-2 rounded-[1px] hm-level-0 inline-block"></span>
+              <span class="w-2 h-2 rounded-[1px] hm-level-1 inline-block"></span>
+              <span class="w-2 h-2 rounded-[1px] hm-level-2 inline-block"></span>
+              <span class="w-2 h-2 rounded-[1px] hm-level-3 inline-block"></span>
+              <span class="w-2 h-2 rounded-[1px] hm-level-4 inline-block"></span>
               <span>More</span>
             </div>
           </div>
 
-          <div
-            class="bg-black/30 p-3 rounded-xl border border-white/[0.05] overflow-x-auto"
-          >
+          <div class="bg-black/30 p-3 rounded-xl border border-white/[0.05] overflow-x-auto">
             <div class="flex flex-col gap-1 w-max">
-              <div
-                id="heatmapMonths"
-                class="grid grid-flow-col auto-cols-[10px] gap-1 text-[8px] text-slate-500 font-mono pl-4"
-              ></div>
-
+              <div id="heatmapMonths" class="grid grid-flow-col auto-cols-[10px] gap-1 text-[8px] text-slate-500 font-mono pl-4"></div>
               <div class="flex gap-1.5">
-                <div
-                  class="grid grid-rows-7 gap-1 text-[7px] text-slate-500 font-mono leading-[10px] select-none"
-                >
-                  <span>Sun</span>
-                  <span>Mon</span>
-                  <span>Tue</span>
-                  <span>Wed</span>
-                  <span>Thu</span>
-                  <span>Fri</span>
-                  <span>Sat</span>
+                <div class="grid grid-rows-7 gap-1 text-[7px] text-slate-500 font-mono leading-[10px] select-none">
+                  <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
                 </div>
-
-                <div
-                  id="heatmapGrid"
-                  class="grid grid-rows-7 grid-flow-col gap-1"
-                ></div>
+                <div id="heatmapGrid" class="grid grid-rows-7 grid-flow-col gap-1"></div>
               </div>
             </div>
           </div>
         </div>
 
+        <!-- Achievements -->
+        <div class="space-y-1.5">
+          <div class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H5a3 3 0 003 3M17 5h2a3 3 0 01-3 3"/></svg>
+            Achievements
+          </div>
+          <div id="badgesContainer" class="space-y-1.5"></div>
+        </div>
+      </div>
+
+      <!-- ============ STREAKS VIEW ============ -->
+      <div id="view-streaks" class="view hidden px-3.5 py-4 flex flex-col items-center space-y-5">
+        <h2 class="w-full text-[13px] font-semibold text-slate-100 flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="#fb923c"><path d="M12 23c-4.97 0-9-3.6-9-8 0-3.2 2-6 5-7.5-.5 1.5-.2 3 .8 4 1-3 3-5.5 5.5-7-.5 2 .5 4 2 5.5.5-1.5 1.2-3 2.2-4C19.5 8 21 11 21 14c0 4.97-4.03 9-9 9z"/></svg>
+          Streaks
+        </h2>
+
+        <div class="streak-flame-wrap">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-4.97 0-9-3.6-9-8 0-3.2 2-6 5-7.5-.5 1.5-.2 3 .8 4 1-3 3-5.5 5.5-7-.5 2 .5 4 2 5.5.5-1.5 1.2-3 2.2-4C19.5 8 21 11 21 14c0 4.97-4.03 9-9 9z"/></svg>
+        </div>
+
+        <div class="text-center">
+          <div id="streakBigNumber" class="text-5xl font-extrabold text-slate-100">1</div>
+          <div class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mt-1">Day Streak</div>
+        </div>
+
+        <div class="w-full grid grid-cols-2 gap-1.5">
+          <div class="bg-white/[0.025] border border-white/[0.05] rounded-lg p-2 flex flex-col items-center justify-center text-center">
+            <div class="text-[8px] text-slate-500 uppercase font-medium">Best Streak</div>
+            <div id="streakBestDisplay" class="text-[13px] font-semibold theme-accent-text">1</div>
+          </div>
+          <div class="bg-white/[0.025] border border-white/[0.05] rounded-lg p-2 flex flex-col items-center justify-center text-center">
+            <div class="text-[8px] text-slate-500 uppercase font-medium">1k Milestones</div>
+            <div id="streak1kDisplay" class="text-[13px] font-semibold text-slate-100">0</div>
+          </div>
+        </div>
+
+        <div class="w-full space-y-1.5">
+          <div class="text-[10px] text-slate-500 font-semibold uppercase tracking-wide">This Week</div>
+          <div id="streakWeekRow" class="flex justify-between gap-1.5"></div>
+        </div>
+
+        <p class="text-[9px] text-slate-500 text-center leading-relaxed px-2">
+          Your streak grows by one for every consecutive day you seek forgiveness. Missing a day resets it to one — consistency over quantity.
+        </p>
+      </div>
+
+      <!-- ============ SETTINGS VIEW ============ -->
+      <div id="view-settings" class="view hidden px-3.5 py-3 space-y-4">
+        <h2 class="text-[13px] font-semibold text-slate-100 flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 theme-accent-text" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+          Settings
+        </h2>
+
         <!-- Preferences -->
-        <div
-          class="flex items-center justify-between pt-1 border-t border-white/[0.06]"
-        >
-          <span class="text-[11px] text-slate-300 flex items-center gap-1.5"
-            ><i class="fa-solid fa-volume-high text-[10px] text-slate-500"></i>
-            Tap sound</span
-          >
-          <button
-            id="soundToggle"
-            class="switch-track on"
-            aria-label="Toggle sound"
-          >
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] text-slate-300 flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 010 7"/></svg>
+            Tap sound
+          </span>
+          <button id="soundToggle" class="switch-track on" aria-label="Toggle sound">
             <span class="switch-thumb"></span>
           </button>
         </div>
 
         <!-- Data Management -->
-        <div class="space-y-2 pt-1 border-t border-white/[0.06]">
-          <div
-            class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5"
-          >
-            <i class="fa-solid fa-database text-[10px] text-slate-500"></i> Data
+        <div class="space-y-2 pt-3 border-t border-white/[0.06]">
+          <div class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 12c0 1.66 3.58 3 8 3s8-1.34 8-3"/></svg>
+            Data
           </div>
           <div class="grid grid-cols-2 gap-2">
-            <button
-              id="exportDataBtn"
-              class="py-2 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-center gap-1.5"
-            >
-              <i class="fa-solid fa-download text-xs text-sky-400"></i>
+            <button id="exportDataBtn" class="py-2 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-center gap-1.5">
+              <svg viewBox="0 0 24 24" class="w-3 h-3 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 12l5 5 5-5"/><path d="M4 21h16"/></svg>
               <span>Export</span>
             </button>
-
-            <button
-              id="importDataBtn"
-              class="py-2 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer"
-            >
-              <i class="fa-solid fa-upload text-xs text-emerald-400"></i>
+            <button id="importDataBtn" class="py-2 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-center gap-1.5 cursor-pointer">
+              <svg viewBox="0 0 24 24" class="w-3 h-3 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v13"/><path d="M7 8l5-5 5 5"/><path d="M4 21h16"/></svg>
               <span>Import</span>
             </button>
-            <input
-              type="file"
-              id="importFileInput"
-              accept=".json"
-              class="hidden"
-            />
+            <input type="file" id="importFileInput" accept=".json" class="hidden" />
           </div>
 
-          <button
-            id="fullResetBtn"
-            class="w-full mt-2 py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 text-[11px] font-semibold rounded-xl transition flex items-center justify-center gap-1.5"
-          >
-            <i class="fa-solid fa-trash-can text-xs"></i>
+          <button id="fullResetBtn" class="w-full mt-2 py-2 px-3 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/20 text-rose-400 text-[11px] font-semibold rounded-xl transition flex items-center justify-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
             <span>Full Reset (Wipe All Data)</span>
           </button>
         </div>
 
-        <!-- User Guide Button -->
-        <div class="space-y-2 pt-2 mt-2 border-t border-white/[0.06]">
-          <button
-            id="openGuideModalBtn"
-            class="w-full py-2.5 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-between group"
-          >
+        <!-- More -->
+        <div class="space-y-2 pt-3 border-t border-white/[0.06]">
+          <button id="infoBtn" class="w-full py-2.5 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-between group">
             <span class="flex items-center gap-1.5">
-              <i class="fa-solid fa-book-open-reader text-xs text-sky-400"></i>
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 5a5.5 5.5 0 019.5 7c-2.5 4.5-9.5 9-9.5 9z"/></svg>
+              <span>Virtues of Istighfar</span>
+            </span>
+            <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-500 group-hover:text-slate-300 transition" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+          </button>
+
+          <button id="openGuideModalBtn" class="w-full py-2.5 px-3 bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] text-slate-200 text-[11px] font-medium rounded-xl transition flex items-center justify-between group">
+            <span class="flex items-center gap-1.5">
+              <svg viewBox="0 0 24 24" class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 016.5 2H20v16H6.5A2.5 2.5 0 004 20.5v-16z"/><path d="M4 20.5A2.5 2.5 0 016.5 18H20"/></svg>
               <span>App Guide & Information</span>
             </span>
-            <i class="fa-solid fa-chevron-right text-[9px] text-slate-500 group-hover:text-slate-300 transition"></i>
+            <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-500 group-hover:text-slate-300 transition" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
-
       </div>
+
     </div>
 
-    <!-- Achievements Modal -->
+    <!-- Bottom Navbar -->
+    <nav id="bottomNav" class="w-full max-w-md mx-auto hide-in-focus">
+      <button class="nav-btn active" data-view="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg>
+        <span>Home</span>
+      </button>
+      <button class="nav-btn" data-view="prayers">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l2 3h-4l2-3z"/><path d="M5 21V11a7 7 0 0114 0v10"/><path d="M9 21v-5a3 3 0 016 0v5"/><path d="M3 21h18"/></svg>
+        <span>Prayers</span>
+      </button>
+      <button class="nav-btn" data-view="insights">
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="4" y="12" width="4" height="8" rx="1"/><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="16" y="9" width="4" height="11" rx="1"/></svg>
+        <span>Insights</span>
+      </button>
+      <button class="nav-btn" data-view="streaks">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 23c-4.97 0-9-3.6-9-8 0-3.2 2-6 5-7.5-.5 1.5-.2 3 .8 4 1-3 3-5.5 5.5-7-.5 2 .5 4 2 5.5.5-1.5 1.2-3 2.2-4C19.5 8 21 11 21 14c0 4.97-4.03 9-9 9z"/></svg>
+        <span>Streaks</span>
+      </button>
+      <button class="nav-btn" data-view="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1a2 2 0 11-2.8 2.8l-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.5V21a2 2 0 01-4 0v-.1a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1a2 2 0 11-2.8-2.8l.1-.1a1.7 1.7 0 00.3-1.9 1.7 1.7 0 00-1.5-1H3a2 2 0 010-4h.1a1.7 1.7 0 001.5-1 1.7 1.7 0 00-.3-1.9l-.1-.1a2 2 0 112.8-2.8l.1.1a1.7 1.7 0 001.9.3H9a1.7 1.7 0 001-1.5V3a2 2 0 014 0v.1a1.7 1.7 0 001 1.5 1.7 1.7 0 001.9-.3l.1-.1a2 2 0 112.8 2.8l-.1.1a1.7 1.7 0 00-.3 1.9V9a1.7 1.7 0 001.5 1H21a2 2 0 010 4h-.1a1.7 1.7 0 00-1.5 1z"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+
+    <!-- Full-Screen Tap Area Overlay for Focus Mode -->
     <div
-      id="milestonesModal"
-      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
+      id="focusOverlay"
+      class="fixed inset-0 z-40 hidden cursor-pointer flex flex-col justify-between p-4 pointer-events-auto"
     >
-      <div
-        class="bg-[#0d1117] border border-white/[0.07] w-full max-w-md rounded-2xl p-4 max-h-[85vh] overflow-y-auto space-y-3 soft-shadow"
-      >
-        <div
-          class="flex justify-between items-center border-b border-white/[0.06] pb-2.5"
-        >
-          <div>
-            <h3
-              class="font-semibold text-[13px] text-slate-100 flex items-center gap-1.5"
-            >
-              <i class="fa-solid fa-trophy theme-accent-text text-xs"></i>
-              Achievements
-            </h3>
-            <p class="text-[9px] text-slate-500 mt-0.5">
-              Unlock ranks as you progress through Istighfar milestones
-            </p>
-          </div>
-          <button
-            id="closeMilestonesModal"
-            class="text-slate-500 hover:text-slate-100 p-1"
-          >
-            <i class="fa-solid fa-xmark text-sm"></i>
-          </button>
-        </div>
-
-        <div
-          class="bg-black/20 p-2.5 rounded-xl border border-white/[0.05] space-y-1.5"
-        >
-          <div class="flex justify-between items-center text-[11px]">
-            <span class="font-semibold text-slate-100" id="modalLevelTitle"
-              >Rank 1 • Novice Seeker</span
-            >
-            <span class="theme-accent-text font-semibold" id="modalXpText"
-              >0 XP</span
-            >
-          </div>
-          <div
-            class="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden"
-          >
-            <div
-              id="xpProgressBar"
-              class="theme-accent-bg h-full transition-all duration-500"
-              style="width: 0%"
-            ></div>
-          </div>
-          <p id="nextLevelLabel" class="text-[9px] text-slate-500 text-right">
-            500 XP until Rank 2
-          </p>
-        </div>
-
-        <div id="badgesContainer" class="space-y-1.5"></div>
+      <div class="flex justify-between items-center w-full max-w-md mx-auto">
+        <span class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="w-1.5 h-1.5 theme-accent-text animate-pulse" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+          Focus Mode
+        </span>
+        <button id="exitFocusBtn" class="p-2 rounded-full bg-black/40 border border-white/10 text-slate-400 hover:text-slate-100 transition backdrop-blur-md">
+          <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v3a2 2 0 01-2 2H4M15 3v3a2 2 0 002 2h3M9 21v-3a2 2 0 00-2-2H4M15 21v-3a2 2 0 012-2h3"/></svg>
+        </button>
+      </div>
+      <div class="text-center text-[10px] text-slate-500 uppercase tracking-widest font-medium pointer-events-none">
+        Tap anywhere to count
       </div>
     </div>
 
     <!-- Virtues Modal -->
-    <div
-      id="infoModal"
-      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
-    >
-      <div
-        class="bg-[#0d1117] border border-white/[0.07] w-full max-w-md rounded-2xl p-4 max-h-[85vh] overflow-y-auto space-y-3 soft-shadow"
-      >
-        <div
-          class="flex justify-between items-center border-b border-white/[0.06] pb-2.5"
-        >
-          <h3
-            class="font-semibold text-[13px] theme-accent-text flex items-center gap-1.5"
-          >
-            <i class="fa-solid fa-heart text-xs"></i> Virtues of Istighfar
+    <div id="infoModal" class="modal-overlay hidden">
+      <div class="modal-panel max-w-md max-h-[85vh] overflow-y-auto space-y-3">
+        <div class="flex justify-between items-center border-b border-white/[0.06] pb-2.5">
+          <h3 class="font-semibold text-[13px] theme-accent-text flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 5a5.5 5.5 0 019.5 7c-2.5 4.5-9.5 9-9.5 9z"/></svg>
+            Virtues of Istighfar
           </h3>
-          <button
-            id="closeInfoModal"
-            class="text-slate-500 hover:text-slate-100 p-1"
-          >
-            <i class="fa-solid fa-xmark text-sm"></i>
+          <button id="closeInfoModal" class="text-slate-500 hover:text-slate-100 p-1">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>
 
         <div class="space-y-2 text-[11px] text-slate-300 leading-relaxed">
           <div class="p-2.5 bg-black/20 rounded-xl border border-white/[0.05]">
-            <span class="font-semibold text-slate-100 block mb-1"
-              >Surah Nuh (71:10-12)</span
-            >
+            <span class="font-semibold text-slate-100 block mb-1">Surah Nuh (71:10-12)</span>
             "Ask forgiveness of your Lord. Indeed, He is ever a Perpetual
             Forgiver. He will send rain upon you in showers and give you
             increase in wealth and children..."
           </div>
           <div class="p-2.5 bg-black/20 rounded-xl border border-white/[0.05]">
-            <span class="font-semibold text-slate-100 block mb-1"
-              >Hadith (Sunan Abi Dawud 1518)</span
-            >
+            <span class="font-semibold text-slate-100 block mb-1">Hadith (Sunan Abi Dawud 1518)</span>
             "Whoever increases his prayers for forgiveness, Allah will grant him
             relief from every worry and a way out from every hardship..."
           </div>
           <div class="p-2.5 bg-black/20 rounded-xl border border-white/[0.05]">
-            <span class="font-semibold text-slate-100 block mb-1"
-              >Hadith (Sahih al-Bukhari 6307)</span
-            >
+            <span class="font-semibold text-slate-100 block mb-1">Hadith (Sahih al-Bukhari 6307)</span>
             The Prophet ﷺ said: "By Allah, I seek forgiveness from Allah and
             repent to Him more than seventy times a day."
           </div>
@@ -936,27 +964,15 @@
     </div>
 
     <!-- Guide Modal -->
-    <div
-      id="guideModal"
-      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[60] flex items-center justify-center p-4 hidden"
-    >
-      <div
-        class="bg-[#0d1117] border border-white/[0.07] w-full max-w-md rounded-2xl p-4 max-h-[85vh] overflow-y-auto space-y-3 soft-shadow"
-      >
-        <div
-          class="flex justify-between items-center border-b border-white/[0.06] pb-2.5"
-        >
-          <h3
-            class="font-semibold text-[13px] text-slate-100 flex items-center gap-1.5"
-          >
-            <i class="fa-solid fa-book-open-reader text-sky-400 text-xs"></i>
+    <div id="guideModal" class="modal-overlay hidden" style="z-index:60;">
+      <div class="modal-panel max-w-md max-h-[85vh] overflow-y-auto space-y-3">
+        <div class="flex justify-between items-center border-b border-white/[0.06] pb-2.5">
+          <h3 class="font-semibold text-[13px] text-slate-100 flex items-center gap-1.5">
+            <svg viewBox="0 0 24 24" class="w-3 h-3 text-sky-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 016.5 2H20v16H6.5A2.5 2.5 0 004 20.5v-16z"/><path d="M4 20.5A2.5 2.5 0 016.5 18H20"/></svg>
             App Guide & Information
           </h3>
-          <button
-            id="closeGuideModalBtn"
-            class="text-slate-500 hover:text-slate-100 p-1"
-          >
-            <i class="fa-solid fa-xmark text-sm"></i>
+          <button id="closeGuideModalBtn" class="text-slate-500 hover:text-slate-100 p-1">
+            <svg viewBox="0 0 24 24" class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
           </button>
         </div>
 
@@ -964,7 +980,7 @@
           <div class="bg-black/20 border border-white/[0.05] rounded-xl p-3 space-y-2.5">
             <div class="flex gap-2.5 items-start">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-hand-pointer text-[9px] theme-accent-text"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 theme-accent-text" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12h8M12 8v8"/><circle cx="12" cy="12" r="9"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Counting</div>
@@ -974,67 +990,67 @@
 
             <div class="flex gap-2.5 items-start">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-user-secret text-[9px] text-amber-400"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-amber-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0112 20c-7 0-11-8-11-8a21.8 21.8 0 015.06-6.06M9.9 4.24A10.94 10.94 0 0112 4c7 0 11 8 11 8a21.7 21.7 0 01-3.22 4.44M1 1l22 22"/><path d="M14.12 14.12a3 3 0 11-4.24-4.24"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Anonymous Mode</div>
-                Tap the <i class="fa-solid fa-user-secret text-[9px] text-amber-400"></i> icon in the header to enter Anonymous Mode. Count freely without saving progress, streaks, or history.
+                Tap the mask icon in the top bar to enter Anonymous Mode. The screen simplifies to just the counter — count freely without saving progress, streaks, or history.
               </div>
             </div>
 
             <div class="flex gap-2.5 items-start">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-bullseye text-[9px] text-sky-400"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-sky-400" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Setting a Goal</div>
-                Choose a preset goal (100 / 1,000 / 3,000 / 10,000) or set a custom number. The ring around the counter fills as you progress. Completing your goal triggers a celebration. 🎉
+                Tap the <span class="text-slate-300 font-medium">Goal</span> chip above the action buttons to choose a preset (100 / 1,000 / 3,000 / 10,000) or a custom number. The ring around the counter fills as you progress, and completing your goal triggers a celebration.
               </div>
             </div>
 
             <div class="flex gap-2.5 items-start">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-fire text-[9px] text-orange-400"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-orange-400" fill="currentColor"><path d="M12 23c-4.97 0-9-3.6-9-8 0-3.2 2-6 5-7.5-.5 1.5-.2 3 .8 4 1-3 3-5.5 5.5-7-.5 2 .5 4 2 5.5.5-1.5 1.2-3 2.2-4C19.5 8 21 11 21 14c0 4.97-4.03 9-9 9z"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Daily Streaks</div>
-                Your streak grows by 1 for every consecutive day you use the app. Opening the app on any new day automatically archives yesterday's count to your activity history.
+                Your streak grows by 1 for every consecutive day you use the app — tracked on the Streaks tab. Opening the app on any new day automatically archives yesterday's count to your activity history.
               </div>
             </div>
 
             <div class="flex gap-2.5 items-start">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-expand text-[9px] text-purple-400"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-purple-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3M16 3h3a2 2 0 012 2v3M8 21H5a2 2 0 01-2-2v-3M16 21h3a2 2 0 002-2v-3"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Focus Mode</div>
-                Tap the <span class="text-slate-300 font-medium">⛶ expand</span> button in the top bar to enter full-screen Focus Mode. Tap anywhere on the screen to count — perfect for hands-free use during prayer.
+                Tap the expand button in the top bar to enter full-screen Focus Mode. Tap anywhere on the screen to count — perfect for hands-free use during prayer.
               </div>
             </div>
 
             <div class="flex gap-2.5 items-start">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-trophy text-[9px] text-yellow-400"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-yellow-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4"/><path d="M7 4h10v5a5 5 0 01-10 0V4z"/><path d="M7 5H5a3 3 0 003 3M17 5h2a3 3 0 01-3 3"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Ranks &amp; Badges</div>
-                Earn 15 ranks (★1–★15) as your lifetime total grows. Unlock 15 milestone badges at key counts (33, 100 … 10,000,000). Tap the <i class="fa-solid fa-trophy text-[8px]"></i> button to see all achievements.
+                Earn 15 ranks (★1–★15) as your lifetime total grows. Unlock 15 milestone badges at key counts (33, 100 … 10,000,000). Check the Insights tab to see all achievements.
               </div>
             </div>
 
             <div class="flex gap-2.5 items-start">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-cloud-arrow-up text-[9px] text-emerald-400"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-emerald-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a4 4 0 01-1-7.874A5.5 5.5 0 0117 8h.5A4.5 4.5 0 0122 12.5 4.5 4.5 0 0117.5 17H7z"/><path d="M12 12v6m0-6l-3 3m3-3l3 3"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Backup &amp; Restore</div>
-                Use <span class="text-slate-300 font-medium">Export</span> to save your data as a <code class="bg-white/[0.06] px-1 rounded text-[9px]">.json</code> file (shared via your phone's share sheet on Android). Use <span class="text-slate-300 font-medium">Import</span> to restore from a backup on a new device.
+                Use <span class="text-slate-300 font-medium">Export</span> in Settings to save your data as a <code class="bg-white/[0.06] px-1 rounded text-[9px]">.json</code> file (shared via your phone's share sheet on Android). Use <span class="text-slate-300 font-medium">Import</span> to restore from a backup on a new device.
               </div>
             </div>
 
             <div class="flex gap-2.5 items-start mt-4 pt-3 border-t border-white/[0.06]">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-heart text-[9px] text-rose-400"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-rose-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-4.5-9.5-9A5.5 5.5 0 0112 5a5.5 5.5 0 019.5 7c-2.5 4.5-9.5 9-9.5 9z"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Intention (Niyyah)</div>
@@ -1044,7 +1060,7 @@
 
             <div class="flex gap-2.5 items-start mt-3">
               <div class="w-6 h-6 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0 mt-0.5">
-                <i class="fa-solid fa-code text-[9px] text-slate-400"></i>
+                <svg viewBox="0 0 24 24" class="w-2.5 h-2.5 text-slate-400" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6L2 12l6 6M16 6l6 6-6 6"/></svg>
               </div>
               <div>
                 <div class="text-slate-200 font-semibold text-[10px] mb-0.5">Developer</div>
@@ -1056,17 +1072,27 @@
       </div>
     </div>
 
-    <!-- Custom Target Modal -->
-    <div
-      id="targetModal"
-      class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden"
-    >
-      <div
-        class="bg-[#0d1117] border border-white/[0.07] w-full max-w-xs rounded-2xl p-4 space-y-3 soft-shadow"
-      >
-        <h3 class="font-semibold text-[13px] text-slate-100">
-          Set Custom Goal
+    <!-- Goal Modal (presets + custom, combined) -->
+    <div id="targetModal" class="modal-overlay hidden">
+      <div class="modal-panel max-w-xs space-y-3">
+        <h3 class="font-semibold text-[13px] text-slate-100 flex items-center gap-1.5">
+          <svg viewBox="0 0 24 24" class="w-3 h-3 theme-accent-text" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></svg>
+          Set Your Goal
         </h3>
+
+        <div class="grid grid-cols-2 gap-1.5">
+          <button class="target-btn px-2 py-2 text-[11px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition" data-target="100">100</button>
+          <button class="target-btn px-2 py-2 text-[11px] font-semibold rounded-lg theme-accent-bg text-slate-950 font-bold transition" data-target="1000">1,000</button>
+          <button class="target-btn px-2 py-2 text-[11px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition" data-target="3000">3,000</button>
+          <button class="target-btn px-2 py-2 text-[11px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition" data-target="10000">10,000</button>
+        </div>
+
+        <div class="flex items-center gap-2 text-[10px] text-slate-500">
+          <div class="flex-1 h-px bg-white/[0.06]"></div>
+          <span>or custom</span>
+          <div class="flex-1 h-px bg-white/[0.06]"></div>
+        </div>
+
         <input
           id="customTargetInput"
           type="number"
@@ -1076,21 +1102,12 @@
           class="w-full bg-black/20 border border-white/[0.06] rounded-lg p-2.5 text-[12px] text-slate-100 focus:outline-none focus:border-white/20"
         />
         <div class="flex justify-end space-x-2">
-          <button
-            id="cancelTargetBtn"
-            class="px-3.5 py-1.5 text-[11px] bg-white/[0.06] rounded-lg text-slate-300"
-          >
-            Cancel
-          </button>
-          <button
-            id="applyTargetBtn"
-            class="px-3.5 py-1.5 text-[11px] theme-accent-bg text-slate-950 font-bold rounded-lg"
-          >
-            Set Goal
-          </button>
+          <button id="cancelTargetBtn" class="px-3.5 py-1.5 text-[11px] bg-white/[0.06] rounded-lg text-slate-300">Cancel</button>
+          <button id="applyTargetBtn" class="px-3.5 py-1.5 text-[11px] theme-accent-bg text-slate-950 font-bold rounded-lg">Set Goal</button>
         </div>
       </div>
     </div>
+
     <script src="lib/chart.umd.js"></script>
     <script src="script.js"></script>
   </body>

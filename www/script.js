@@ -56,7 +56,6 @@ async function loadStateIDB() {
         dailyHistory: idbState.dailyHistory || {}
       };
     } else {
-      // Migrate from localStorage
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
@@ -67,8 +66,8 @@ async function loadStateIDB() {
           unlockedBadges: new Set(parsed.unlockedBadges || []),
           dailyHistory: parsed.dailyHistory || {}
         };
-        await saveStateIDB(migratedState); // Save to IDB
-        localStorage.removeItem(STORAGE_KEY); // Clean up
+        await saveStateIDB(migratedState);
+        localStorage.removeItem(STORAGE_KEY);
         return migratedState;
       }
     }
@@ -79,7 +78,7 @@ async function loadStateIDB() {
   return { ...defaultState, unlockedBadges: new Set(), dailyHistory: {} };
 }
 
-let state = null; // Will be initialized asynchronously
+let state = null;
 
 async function saveStateIDB(stateToSave = state) {
   if (!stateToSave || isAnonymous) return;
@@ -99,7 +98,6 @@ async function saveStateIDB(stateToSave = state) {
   }
 }
 
-// Keep original saveState signature to avoid breaking other calls
 function saveState() {
   if (!isAnonymous) {
     saveStateIDB(state);
@@ -126,23 +124,14 @@ const MILESTONES = [
   { count: 250000,    title: 'Light Bearer',            desc: 'Reached 250,000 Istighfar',             tier: 3, xp: 250000 },
   { count: 500000,    title: 'Cosmic Master',           desc: 'Completed 500,000 Istighfar',           tier: 4, xp: 500000 },
   { count: 1000000,   title: 'Pillar of Repentance',    desc: 'Achieved 1,000,000 Lifetime Istighfar', tier: 5, xp: 1000000 },
-  // ── Elite Tier ──
   { count: 2500000,   title: 'Master of Istighfar',     desc: 'An extraordinary 2,500,000 Istighfar',  tier: 6, xp: 2500000 },
   { count: 5000000,   title: 'Beacon of Devotion',      desc: 'Half of ten million — SubhanAllah',     tier: 7, xp: 5000000 },
   { count: 10000000,  title: 'Al-Musaafir — Millionist',desc: 'Ten million Istighfar. MashaAllah!',    tier: 8, xp: 10000000 }
 ];
 
-// Standard tiers 0-5, then Elite tiers 6 (Rose Gold), 7 (Deep Emerald), 8 (Glowing Cyan)
 const TIER_COLORS = [
-  '#94a3b8', // 0 – Slate
-  '#38bdf8', // 1 – Sky Blue
-  '#a78bfa', // 2 – Violet
-  '#f59e0b', // 3 – Amber
-  '#10b981', // 4 – Emerald
-  '#f472b6', // 5 – Pink
-  '#e8a87c', // 6 – Rose Gold  ✦ Elite
-  '#00b894', // 7 – Deep Emerald ✦ Elite
-  '#00cec9'  // 8 – Glowing Cyan ✦ Elite
+  '#94a3b8', '#38bdf8', '#a78bfa', '#f59e0b',
+  '#10b981', '#f472b6', '#e8a87c', '#00b894', '#00cec9'
 ];
 
 const duaPhrases = {
@@ -176,8 +165,6 @@ const arabicText = document.getElementById('arabicText');
 const transliterationText = document.getElementById('transliterationText');
 const todayTotalDisplay = document.getElementById('todayTotalDisplay');
 const lifetimeTotalDisplay = document.getElementById('lifetimeTotalDisplay');
-const rankSubtitle = document.getElementById('rankSubtitle');
-const levelBadge = document.getElementById('levelBadge');
 const floatContainer = document.getElementById('floatContainer');
 const badgesContainer = document.getElementById('badgesContainer');
 
@@ -207,16 +194,11 @@ const infoModal = document.getElementById('infoModal');
 const infoBtn = document.getElementById('infoBtn');
 const closeInfoModal = document.getElementById('closeInfoModal');
 
-const milestonesModal = document.getElementById('milestonesModal');
-const milestonesBtn = document.getElementById('milestonesBtn');
-const closeMilestonesModal = document.getElementById('closeMilestonesModal');
-
-const settingsModal = document.getElementById('settingsModal');
-const settingsBtn = document.getElementById('settingsBtn');
-const closeSettingsModal = document.getElementById('closeSettingsModal');
+const settingsModal = document.getElementById('view-settings');
 
 const targetModal = document.getElementById('targetModal');
-const customTargetBtn = document.getElementById('customTargetBtn');
+const goalChipBtn = document.getElementById('goalChipBtn');
+const goalChipValue = document.getElementById('goalChipValue');
 const customTargetInput = document.getElementById('customTargetInput');
 const applyTargetBtn = document.getElementById('applyTargetBtn');
 const cancelTargetBtn = document.getElementById('cancelTargetBtn');
@@ -233,16 +215,23 @@ const chartTotalLabel = document.getElementById('chartTotalLabel');
 const heatmapGrid = document.getElementById('heatmapGrid');
 const heatmapMonths = document.getElementById('heatmapMonths');
 
-// Modal stats
+// Stats Displays
 const modalLevelTitle = document.getElementById('modalLevelTitle');
 const modalXpText = document.getElementById('modalXpText');
 const xpProgressBar = document.getElementById('xpProgressBar');
 const nextLevelLabel = document.getElementById('nextLevelLabel');
 
-const statTotalIstighfar = document.getElementById('statTotalIstighfar');
+const statTotalIstighfar = document.getElementById('lifetimeTotalDisplay');
 const statStreak = document.getElementById('statStreak');
+const statBestStreak = document.getElementById('statBestStreak');
 const stat1kCount = document.getElementById('stat1kCount');
 const statBadgesEarned = document.getElementById('statBadgesEarned');
+
+// Streaks View Displays
+const streakBigNumber = document.getElementById('streakBigNumber');
+const streakBestDisplay = document.getElementById('streakBestDisplay');
+const streak1kDisplay = document.getElementById('streak1kDisplay');
+const streakWeekRow = document.getElementById('streakWeekRow');
 
 const ringRadius = 124;
 const ringCircumference = 2 * Math.PI * ringRadius;
@@ -315,12 +304,13 @@ function triggerTargetReward() {
 }
 
 function updateRankDisplay() {
-  if (isAnonymous) {
-    rankSubtitle.textContent = 'Anonymous Mode • Session Only';
-    levelBadge.textContent = '🕵';
+  const percent = state.target > 0 ? Math.min(100, Math.floor(((isAnonymous ? anonymousCount : state.count) / state.target) * 100)) : 0;
+  targetLabel.textContent = `${percent}% • Goal ${state.target.toLocaleString()}`;
+  if (goalChipValue) goalChipValue.textContent = state.target.toLocaleString();
 
-    const percent = state.target > 0 ? Math.min(100, Math.floor((anonymousCount / state.target) * 100)) : 0;
-    targetLabel.textContent = `${percent}% • Goal ${state.target.toLocaleString()}`;
+  if (isAnonymous) {
+    if (modalLevelTitle) modalLevelTitle.textContent = 'Anonymous Mode';
+    if (modalXpText) modalXpText.textContent = 'Session Only';
     return;
   }
 
@@ -344,23 +334,18 @@ function updateRankDisplay() {
   else if (effectiveTotal >= 500)     { rank = 'Awakened Seeker';       lvl = 2;  nextThreshold = 1000; }
   else                                { rank = 'Novice Seeker';         lvl = 1;  nextThreshold = 500; }
 
-  rankSubtitle.textContent = `${rank} • ${effectiveTotal.toLocaleString()} XP`;
-  levelBadge.textContent = `★${lvl}`;
-
-  // Fixed Percentage Mismatch Bug: Uses Math.floor so 5/1000 is 0% and 995/1000 is 99%
-  const percent = state.target > 0 ? Math.min(100, Math.floor((state.count / state.target) * 100)) : 0;
-  targetLabel.textContent = `${percent}% • Goal ${state.target.toLocaleString()}`;
-
-  modalLevelTitle.textContent = `Rank ${lvl} • ${rank}`;
-  modalXpText.textContent = `${effectiveTotal.toLocaleString()} XP`;
+  if (modalLevelTitle) modalLevelTitle.textContent = `Rank ${lvl} • ${rank}`;
+  if (modalXpText) modalXpText.textContent = `${effectiveTotal.toLocaleString()} XP`;
 
   const xpPercent = nextThreshold === Infinity
     ? 100
     : Math.min(100, (effectiveTotal / nextThreshold) * 100);
-  xpProgressBar.style.width = `${xpPercent}%`;
-  nextLevelLabel.textContent = nextThreshold === Infinity
-    ? 'Al-Musaafir achieved — SubhanAllah! 🌙✨'
-    : `${(nextThreshold - effectiveTotal).toLocaleString()} XP until next tier`;
+  if (xpProgressBar) xpProgressBar.style.width = `${xpPercent}%`;
+  if (nextLevelLabel) {
+    nextLevelLabel.textContent = nextThreshold === Infinity
+      ? 'Al-Musaafir achieved — SubhanAllah!'
+      : `${(nextThreshold - effectiveTotal).toLocaleString()} XP until next rank`;
+  }
 }
 
 function checkMilestones() {
@@ -400,6 +385,7 @@ function spawnFloatingText(text) {
 }
 
 function renderBadgesList() {
+  if (!badgesContainer) return;
   badgesContainer.innerHTML = '';
   const currentVal = Math.max(state.count, state.lifetimeTotal);
 
@@ -462,7 +448,7 @@ function renderWeeklyChart() {
     counts.push(count);
   }
 
-  chartTotalLabel.textContent = `${weeklySum.toLocaleString()} total this week`;
+  if (chartTotalLabel) chartTotalLabel.textContent = `${weeklySum.toLocaleString()} total this week`;
 
   if (weeklyChartInstance) {
     weeklyChartInstance.data.labels = days;
@@ -521,10 +507,11 @@ function renderWeeklyChart() {
 }
 
 function renderHeatmap() {
+  if (!heatmapGrid || !heatmapMonths) return;
   heatmapGrid.innerHTML = '';
   heatmapMonths.innerHTML = '';
 
-  const totalWeeks = 26; // ~6 months of history
+  const totalWeeks = 26;
   const totalDays = totalWeeks * 7;
   const today = new Date();
   
@@ -583,16 +570,46 @@ function renderHeatmap() {
   }
 }
 
+function renderStreakWeek() {
+  if (!streakWeekRow) return;
+  streakWeekRow.innerHTML = '';
+  const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const today = new Date();
+  const currentDayIdx = today.getDay();
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() - (currentDayIdx - i));
+    const iso = getFormattedDate(d);
+    const count = state.dailyHistory[iso] || 0;
+    const isToday = i === currentDayIdx;
+
+    const dot = document.createElement('div');
+    let colorClass = 'bg-white/[0.05] text-slate-500';
+    if (count > 0) {
+      colorClass = 'theme-accent-bg text-slate-950 font-bold';
+    }
+    if (isToday) {
+      dot.style.outline = '1px solid var(--accent-color)';
+    }
+
+    dot.className = `streak-dot ${colorClass}`;
+    dot.textContent = daysOfWeek[i];
+    dot.setAttribute('data-tooltip', `${d.toLocaleDateString('en-US', { weekday: 'short' })}: ${count.toLocaleString()}`);
+    streakWeekRow.appendChild(dot);
+  }
+}
+
 function updateProgress() {
   const currentDisplayCount = isAnonymous ? anonymousCount : state.count;
   counterDisplay.textContent = currentDisplayCount.toLocaleString();
 
   if (isAnonymous) {
-    todayTotalDisplay.textContent = '—';
-    lifetimeTotalDisplay.textContent = '—';
+    if (todayTotalDisplay) todayTotalDisplay.textContent = '—';
+    if (lifetimeTotalDisplay) lifetimeTotalDisplay.textContent = '—';
   } else {
-    todayTotalDisplay.textContent = state.todayTotal.toLocaleString();
-    lifetimeTotalDisplay.textContent = state.lifetimeTotal.toLocaleString();
+    if (todayTotalDisplay) todayTotalDisplay.textContent = state.todayTotal.toLocaleString();
+    if (lifetimeTotalDisplay) lifetimeTotalDisplay.textContent = state.lifetimeTotal.toLocaleString();
   }
 
   const progress = Math.min(currentDisplayCount / state.target, 1);
@@ -605,10 +622,15 @@ function updateProgress() {
     tapBtn.classList.remove('glow-pulse');
   }
 
-  statTotalIstighfar.textContent = state.lifetimeTotal.toLocaleString();
-  statStreak.textContent = `${state.streakDays}`;
-  stat1kCount.textContent = state.kCompletedCount.toLocaleString();
-  statBadgesEarned.textContent = `${state.unlockedBadges.size}/${MILESTONES.length}`;
+  if (statTotalIstighfar) statTotalIstighfar.textContent = state.lifetimeTotal.toLocaleString();
+  if (statStreak) statStreak.textContent = `${state.streakDays}`;
+  if (statBestStreak) statBestStreak.textContent = `${state.streakDays}`;
+  if (stat1kCount) stat1kCount.textContent = state.kCompletedCount.toLocaleString();
+  if (statBadgesEarned) statBadgesEarned.textContent = `${state.unlockedBadges.size}/${MILESTONES.length}`;
+
+  if (streakBigNumber) streakBigNumber.textContent = state.streakDays;
+  if (streakBestDisplay) streakBestDisplay.textContent = state.streakDays;
+  if (streak1kDisplay) streak1kDisplay.textContent = state.kCompletedCount;
 
   updateRankDisplay();
 }
@@ -618,7 +640,6 @@ function checkDailyReset() {
 
   const currentTodayStr = getFormattedDate();
   
-  // Backward compatibility check for legacy date strings stored as `toDateString()`
   let lastActiveISO = state.lastActiveDate;
   if (state.lastActiveDate && state.lastActiveDate.includes(' ')) {
     const parsedDate = new Date(state.lastActiveDate);
@@ -653,9 +674,11 @@ function toggleAnonymousMode(forceState = null) {
 
   if (isAnonymous) {
     anonymousCount = 0;
+    document.body.classList.add('anonymous-mode');
     anonymousBtn.classList.add('bg-amber-500/20', 'text-amber-400', 'border-amber-500/40');
     anonymousBanner.classList.remove('hidden');
   } else {
+    document.body.classList.remove('anonymous-mode');
     anonymousBtn.classList.remove('bg-amber-500/20', 'text-amber-400', 'border-amber-500/40');
     anonymousBanner.classList.add('hidden');
   }
@@ -755,7 +778,6 @@ function handleFullReset() {
     renderBadgesList();
     renderWeeklyChart();
     renderHeatmap();
-    settingsModal.classList.add('hidden');
     alert("All data has been reset to zero.");
   }
 }
@@ -764,9 +786,9 @@ function setTarget(newTarget) {
   state.target = parseInt(newTarget) || 1000;
   document.querySelectorAll('.target-btn').forEach(btn => {
     if (parseInt(btn.getAttribute('data-target')) === state.target) {
-      btn.className = 'target-btn px-2 py-1 text-[10px] font-semibold rounded-lg theme-accent-bg text-slate-950 font-bold transition';
+      btn.className = 'target-btn px-2 py-2 text-[11px] font-semibold rounded-lg theme-accent-bg text-slate-950 font-bold transition';
     } else {
-      btn.className = 'target-btn px-2 py-1 text-[10px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition';
+      btn.className = 'target-btn px-2 py-2 text-[11px] font-semibold rounded-lg bg-white/[0.05] text-slate-400 hover:text-slate-100 transition';
     }
   });
   updateProgress();
@@ -782,6 +804,38 @@ function enableFocusMode() {
 function disableFocusMode() {
   document.body.classList.remove('focus-mode');
   focusOverlay.classList.add('hidden');
+}
+
+// Navigation Router Logic
+function setupBottomNavbar() {
+  const navButtons = document.querySelectorAll('#bottomNav .nav-btn');
+  const views = document.querySelectorAll('#viewContainer .view');
+
+  navButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (isAnonymous && btn.getAttribute('data-view') !== 'home') return;
+
+      const targetViewId = `view-${btn.getAttribute('data-view')}`;
+
+      navButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      views.forEach(v => {
+        if (v.id === targetViewId) {
+          v.classList.remove('hidden');
+        } else {
+          v.classList.add('hidden');
+        }
+      });
+
+      if (targetViewId === 'view-insights') {
+        renderWeeklyChart();
+        renderHeatmap();
+      } else if (targetViewId === 'view-streaks') {
+        renderStreakWeek();
+      }
+    });
+  });
 }
 
 // Event Listeners
@@ -809,10 +863,12 @@ document.querySelectorAll('.target-btn').forEach(btn => {
   btn.addEventListener('click', (e) => setTarget(e.target.getAttribute('data-target')));
 });
 
-customTargetBtn.addEventListener('click', () => {
-  customTargetInput.value = state.target;
-  targetModal.classList.remove('hidden');
-});
+if (goalChipBtn) {
+  goalChipBtn.addEventListener('click', () => {
+    customTargetInput.value = state.target;
+    targetModal.classList.remove('hidden');
+  });
+}
 
 cancelTargetBtn.addEventListener('click', () => targetModal.classList.add('hidden'));
 
@@ -824,7 +880,6 @@ applyTargetBtn.addEventListener('click', () => {
   }
 });
 
-// Remember Dua Selection Bug Fix
 duaSelect.addEventListener('change', (e) => {
   const val = e.target.value;
   state.selectedDua = val;
@@ -843,16 +898,6 @@ soundToggle.addEventListener('click', () => {
 });
 
 // Modals
-milestonesBtn.addEventListener('click', () => milestonesModal.classList.remove('hidden'));
-closeMilestonesModal.addEventListener('click', () => milestonesModal.classList.add('hidden'));
-
-settingsBtn.addEventListener('click', () => {
-  renderWeeklyChart();
-  renderHeatmap();
-  settingsModal.classList.remove('hidden');
-});
-closeSettingsModal.addEventListener('click', () => settingsModal.classList.add('hidden'));
-
 infoBtn.addEventListener('click', () => infoModal.classList.remove('hidden'));
 closeInfoModal.addEventListener('click', () => infoModal.classList.add('hidden'));
 
@@ -861,14 +906,14 @@ const guideModal = document.getElementById('guideModal');
 const openGuideModalBtn = document.getElementById('openGuideModalBtn');
 const closeGuideModalBtn = document.getElementById('closeGuideModalBtn');
 
-openGuideModalBtn.addEventListener('click', () => {
-  settingsModal.classList.add('hidden');
-  guideModal.classList.remove('hidden');
-});
-closeGuideModalBtn.addEventListener('click', () => {
-  guideModal.classList.add('hidden');
-  settingsModal.classList.remove('hidden');
-});
+if (openGuideModalBtn && closeGuideModalBtn && guideModal) {
+  openGuideModalBtn.addEventListener('click', () => {
+    guideModal.classList.remove('hidden');
+  });
+  closeGuideModalBtn.addEventListener('click', () => {
+    guideModal.classList.add('hidden');
+  });
+}
 
 // Export Data JSON
 exportDataBtn.addEventListener('click', async () => {
@@ -945,7 +990,6 @@ importFileInput.addEventListener('change', (e) => {
         };
         saveState();
         
-        // Restore remembered dua choice UI
         if (state.selectedDua && duaPhrases[state.selectedDua]) {
           duaSelect.value = state.selectedDua;
           arabicText.textContent = duaPhrases[state.selectedDua].arabic;
@@ -958,8 +1002,7 @@ importFileInput.addEventListener('change', (e) => {
         renderHeatmap();
 
         e.target.value = '';
-        settingsModal.classList.add('hidden');
-        alert('Data restored successfully! ✅');
+        alert('Data restored successfully!');
       } else {
         alert('Invalid backup file. Make sure you select an Istighfar backup (.json) file.');
       }
@@ -973,7 +1016,6 @@ importFileInput.addEventListener('change', (e) => {
   reader.readAsText(file);
 });
 
-// Wrap initial UI logic in async initApp function
 async function initApp() {
   const loadingState = document.getElementById('appLoadingState');
   const loadingSpinner = document.getElementById('loadingSpinner');
@@ -985,39 +1027,37 @@ async function initApp() {
     
     checkDailyReset();
 
-    // Restore saved Dua Selection
     if (state.selectedDua && duaPhrases[state.selectedDua]) {
       duaSelect.value = state.selectedDua;
       arabicText.textContent = duaPhrases[state.selectedDua].arabic;
       transliterationText.textContent = duaPhrases[state.selectedDua].trans;
     }
 
-    // Quick Action Launcher
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('action') === 'quick-tap') {
       handleTap();
     }
 
-    // Initialize UI
     progressRing.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`;
     soundToggle.classList.toggle('on', state.soundEnabled);
+    setupBottomNavbar();
     renderBadgesList();
     updateProgress();
 
-    // Hide Loading State
-    loadingState.style.opacity = '0';
-    setTimeout(() => {
-      loadingState.classList.add('hidden');
-    }, 300);
+    if (loadingState) {
+      loadingState.style.opacity = '0';
+      setTimeout(() => {
+        loadingState.classList.add('hidden');
+      }, 300);
+    }
 
   } catch (err) {
-    loadingSpinner.classList.add('hidden');
-    loadingError.classList.remove('hidden');
-    loadingErrorText.textContent = err.message || 'Unable to load your saved progress.';
+    if (loadingSpinner) loadingSpinner.classList.add('hidden');
+    if (loadingError) loadingError.classList.remove('hidden');
+    if (loadingErrorText) loadingErrorText.textContent = err.message || 'Unable to load your saved progress.';
   }
 }
 
-// Start Initialization
 initApp();
 
 if ('serviceWorker' in navigator) {
