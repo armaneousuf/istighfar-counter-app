@@ -30,4 +30,4 @@ When releasing a new update (e.g. v2.3):
 
 #### Share it from this path
 
-`~/istighfar-app/android/app/build/outputs/apk/debug/`
+`~/istighfar-counter-app/android/app/build/outputs/apk/debug/`
