@@ -253,6 +253,11 @@
         pointer-events: none;
       }
 
+      .hide-nav-buttons #anonymousBtn,
+      .hide-nav-buttons #focusBtn {
+        display: none;
+      }
+
       /* Views */
       .view {
         animation: fadeIn 0.18s ease;
@@ -271,12 +276,12 @@
       /* Bottom Nav */
       #bottomNav {
         display: flex;
-        border-top: 1px solid rgba(255, 255, 255, 0.05); /* Softened from 0.12 to eliminate the bright line */
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
         border-radius: 12px;
         background: rgba(13, 16, 20, 0.55);
         backdrop-filter: blur(16px) saturate(180%);
         -webkit-backdrop-filter: blur(16px) saturate(180%);
-        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37); /* Removed the inset top line shadow */
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
         padding-bottom: env(safe-area-inset-bottom, 0px);
         flex-shrink: 0;
       }
@@ -459,6 +464,7 @@
 
     <!-- Topbar: brand + focus + anonymous only -->
     <header
+      id="appHeader"
       class="w-full max-w-md mx-auto px-3.5 py-2.5 flex justify-between items-center border-b border-white/[0.06] shrink-0"
     >
       <div class="flex items-center space-x-2 min-w-0">
@@ -1144,29 +1150,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Achievements -->
-        <div class="space-y-1.5">
-          <div
-            class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5"
-          >
-            <svg
-              viewBox="0 0 24 24"
-              class="w-2.5 h-2.5 text-slate-500"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M8 21h8M12 17v4" />
-              <path d="M7 4h10v5a5 5 0 01-10 0V4z" />
-              <path d="M7 5H5a3 3 0 003 3M17 5h2a3 3 0 01-3 3" />
-            </svg>
-            Achievements
-          </div>
-          <div id="badgesContainer" class="space-y-1.5"></div>
-        </div>
       </div>
 
       <!-- ============ STREAKS VIEW ============ -->
@@ -1244,6 +1227,30 @@
           </div>
           <div id="streakWeekRow" class="flex justify-between gap-1.5"></div>
         </div>
+
+        <!-- ACHIEVEMENTS (MOVED FROM INSIGHTS) -->
+        <div class="w-full space-y-1.5">
+          <div
+            class="text-[11px] font-semibold text-slate-300 flex items-center gap-1.5"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              class="w-2.5 h-2.5 text-slate-500"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M8 21h8M12 17v4" />
+              <path d="M7 4h10v5a5 5 0 01-10 0V4z" />
+              <path d="M7 5H5a3 3 0 003 3M17 5h2a3 3 0 01-3 3" />
+            </svg>
+            Achievements
+          </div>
+          <div id="badgesContainer" class="space-y-1.5"></div>
+        </div>
+        <!-- END ACHIEVEMENTS -->
 
         <p class="text-[9px] text-slate-500 text-center leading-relaxed px-2">
           Your streak grows by one for every consecutive day you seek

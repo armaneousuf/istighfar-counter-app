@@ -355,7 +355,6 @@ function checkMilestones() {
   MILESTONES.forEach(m => {
     if (currentVal >= m.count && !state.unlockedBadges.has(m.count)) {
       state.unlockedBadges.add(m.count);
-      if (m.count === 1000) state.kCompletedCount++;
       showMilestoneToast(m);
       spawnFloatingText(m.title);
       playMilestoneSound();
@@ -703,6 +702,12 @@ function handleTap() {
   state.todayTotal++;
   state.lifetimeTotal++;
 
+  // ✅ Count every time we hit a multiple of 1,000
+  if (state.count % 1000 === 0 && state.count > 0) {
+    state.kCompletedCount++;
+    // Optional: show a small toast or floating text for 1k completed
+  }
+
   const iso = getFormattedDate();
   state.dailyHistory[iso] = (state.dailyHistory[iso] || 0) + 1;
 
@@ -810,6 +815,7 @@ function disableFocusMode() {
 function setupBottomNavbar() {
   const navButtons = document.querySelectorAll('#bottomNav .nav-btn');
   const views = document.querySelectorAll('#viewContainer .view');
+  const header = document.getElementById('appHeader');
 
   navButtons.forEach(btn => {
     btn.addEventListener('click', () => {
@@ -828,11 +834,29 @@ function setupBottomNavbar() {
         }
       });
 
+      // Toggle header buttons visibility
+      if (targetViewId === 'view-home') {
+        header.classList.remove('hide-nav-buttons');
+      } else {
+        header.classList.add('hide-nav-buttons');
+      }
+
+      // Auto-exit Anonymous and Focus modes when leaving the Home view
+      if (targetViewId !== 'view-home') {
+        if (isAnonymous) {
+          toggleAnonymousMode(false);
+        }
+        if (!focusOverlay.classList.contains('hidden')) {
+          disableFocusMode();
+        }
+      }
+
       if (targetViewId === 'view-insights') {
         renderWeeklyChart();
         renderHeatmap();
       } else if (targetViewId === 'view-streaks') {
         renderStreakWeek();
+        renderBadgesList();
       }
     });
   });
@@ -860,7 +884,10 @@ focusOverlay.addEventListener('click', (e) => {
 });
 
 document.querySelectorAll('.target-btn').forEach(btn => {
-  btn.addEventListener('click', (e) => setTarget(e.target.getAttribute('data-target')));
+  btn.addEventListener('click', (e) => {
+    const button = e.currentTarget;
+    setTarget(button.getAttribute('data-target'));
+  });
 });
 
 if (goalChipBtn) {
