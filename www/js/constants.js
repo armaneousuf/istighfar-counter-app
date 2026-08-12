@@ -16,7 +16,7 @@ export const defaultState = {
   streakDays: 0,
   lastActiveDate: getFormattedDate(),
   soundEnabled: true,
-  hapticsEnabled: true,
+  hapticsEnabled: false,
   reminderEnabled: false,
   selectedDua: '1',
   unlockedBadges: [],

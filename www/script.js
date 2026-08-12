@@ -942,12 +942,6 @@ reminderToggle.addEventListener('click', async () => {
 
 locationPermBtn.addEventListener('click', loadPrayerTimes);
 
-document.addEventListener('click', (event) => {
-  if (state?.hapticsEnabled && event.target.closest('button') && !event.target.closest('#tapBtn')) {
-    hapticTap(true);
-  }
-});
-
 // Modals
 infoBtn.addEventListener('click', () => infoModal.classList.remove('hidden'));
 closeInfoModal.addEventListener('click', () => infoModal.classList.add('hidden'));
