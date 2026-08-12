@@ -2,7 +2,7 @@ import { defaultState, duaPhrases, getFormattedDate } from './js/constants.js';
 import { clearState, loadState, saveState as persistState } from './js/storage.js';
 import { hapticTap } from './js/services/haptics.js';
 import { setDailyReminder } from './js/services/notifications.js';
-import { calculatePrayerTimes, formatPrayerTime } from './js/services/prayer.js';
+import { calculatePrayerTimes, formatPrayerTime, saveLocation, getSavedLocation, clearSavedLocation } from './js/services/prayer.js';
 
 // Anonymous Mode Global Variables
 let isAnonymous = false;
@@ -782,13 +782,26 @@ function renderPrayerTimes(latitude, longitude) {
 }
 
 function loadPrayerTimes() {
+  // Check if location is already saved
+  const saved = getSavedLocation();
+  if (saved) {
+    renderPrayerTimes(saved.latitude, saved.longitude);
+    return;
+  }
+
+  // If no saved location, request permission
   if (!navigator.geolocation) {
     prayerStatus.textContent = 'Location is unavailable on this device.';
     return;
   }
+
   prayerStatus.textContent = 'Finding your location…';
   navigator.geolocation.getCurrentPosition(
-    ({ coords }) => renderPrayerTimes(coords.latitude, coords.longitude),
+    ({ coords }) => {
+      // Save the location for future use
+      saveLocation(coords.latitude, coords.longitude);
+      renderPrayerTimes(coords.latitude, coords.longitude);
+    },
     () => { prayerStatus.textContent = 'Allow location to calculate local prayer times.'; },
     { enableHighAccuracy: false, timeout: 10000, maximumAge: 30 * 60 * 1000 }
   );
@@ -940,7 +953,10 @@ reminderToggle.addEventListener('click', async () => {
   if (enabled && !didSchedule) alert('Notification permission is needed to enable the daily reminder.');
 });
 
-locationPermBtn.addEventListener('click', loadPrayerTimes);
+locationPermBtn.addEventListener('click', () => {
+  clearSavedLocation();
+  loadPrayerTimes();
+});
 
 // Modals
 infoBtn.addEventListener('click', () => infoModal.classList.remove('hidden'));
