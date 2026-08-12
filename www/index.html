@@ -864,7 +864,9 @@
         <p id="prayerStatus" class="text-[10px] text-slate-500 leading-relaxed">
           Allow location to calculate prayer times locally—no network is used.
         </p>
-        <p class="text-[9px] text-slate-600">Location: <span id="prayerLocation">Not set</span></p>
+        <p class="text-[9px] text-slate-600">
+          Location: <span id="prayerLocation">Not set</span>
+        </p>
 
         <div id="prayerList" class="space-y-1.5">
           <div class="prayer-row">
@@ -993,54 +995,134 @@
       <div id="view-insights" class="view hidden px-3.5 py-3 space-y-4">
         <div class="flex items-center justify-between">
           <h2 class="text-[15px] font-semibold text-slate-100">Insights</h2>
-          <span id="insightDate" class="text-[9px] text-slate-500 mb-0.5"></span>
+          <span
+            id="insightDate"
+            class="text-[9px] text-slate-500 mb-0.5"
+          ></span>
         </div>
+
+        <section class="bg-black/20 rounded-xl border border-white/[0.05] p-3">
+          <div class="flex items-baseline justify-between gap-3">
+            <p
+              class="text-[10px] text-slate-400 font-medium uppercase tracking-wide"
+            >
+              Lifetime Total
+            </p>
+            <span
+              id="lifetimeTotalDisplay"
+              class="text-[9px] font-semibold text-slate-300 whitespace-nowrap"
+            >
+              0 lifetime
+            </span>
+          </div>
+        </section>
 
         <section class="bg-black/20 rounded-xl border border-white/[0.05] p-3">
           <div class="flex items-baseline justify-between gap-3">
             <div>
               <p class="text-[10px] font-medium text-slate-300">Today</p>
-              <p id="insightTodayProgress" class="text-[22px] tracking-tight font-semibold text-slate-100 mt-0.5">0</p>
+              <p
+                id="insightTodayProgress"
+                class="text-[22px] tracking-tight font-semibold text-slate-100 mt-0.5"
+              >
+                0
+              </p>
             </div>
-            <p id="insightTodayRemaining" class="text-[10px] text-slate-500 text-right">Goal: 1,000</p>
+            <p
+              id="insightTodayRemaining"
+              class="text-[10px] text-slate-500 text-right"
+            >
+              Goal: 1,000
+            </p>
           </div>
           <div class="mt-3 h-1.5 bg-white/[0.07] rounded-full overflow-hidden">
-            <div id="insightTodayBar" class="theme-accent-bg h-full transition-all duration-500" style="width: 0%"></div>
+            <div
+              id="insightTodayBar"
+              class="theme-accent-bg h-full transition-all duration-500"
+              style="width: 0%"
+            ></div>
           </div>
         </section>
 
         <section>
           <div class="flex justify-between items-center mb-1.5">
-            <h3 class="text-[11px] font-semibold text-slate-200">Last 7 days</h3>
-            <span id="insightRhythmLabel" class="text-[9px] text-slate-500"></span>
+            <h3 class="text-[11px] font-semibold text-slate-200">
+              Last 7 days
+            </h3>
+            <span
+              id="insightRhythmLabel"
+              class="text-[9px] text-slate-500"
+            ></span>
           </div>
           <div class="grid grid-cols-3 gap-1.5 text-center">
             <div class="insight-stat p-2.5 rounded-xl">
-              <div id="insightWeekTotal" class="text-[14px] font-bold text-slate-100">0</div>
-              <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">This week</div>
+              <div
+                id="insightWeekTotal"
+                class="text-[14px] font-bold text-slate-100"
+              >
+                0
+              </div>
+              <div
+                class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
+              >
+                This week
+              </div>
             </div>
             <div class="insight-stat p-2.5 rounded-xl">
-              <div id="insightActiveDays" class="text-[14px] font-bold text-slate-100">0/7</div>
-              <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">Active days</div>
+              <div
+                id="insightActiveDays"
+                class="text-[14px] font-bold text-slate-100"
+              >
+                0/7
+              </div>
+              <div
+                class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
+              >
+                Active days
+              </div>
             </div>
             <div class="insight-stat p-2.5 rounded-xl">
-              <div id="statStreak" class="text-[14px] font-bold text-slate-100">1</div>
-              <div class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5">Current streak</div>
+              <div id="statStreak" class="text-[14px] font-bold text-slate-100">
+                1
+              </div>
+              <div
+                class="text-[7px] text-slate-500 uppercase font-semibold mt-0.5"
+              >
+                Current streak
+              </div>
             </div>
           </div>
         </section>
 
-        <section class="bg-black/20 p-3 rounded-xl border border-white/[0.05] space-y-2">
+        <section
+          class="bg-black/20 p-3 rounded-xl border border-white/[0.05] space-y-2"
+        >
           <div class="flex justify-between items-center text-[11px]">
-            <span class="font-semibold text-slate-100" id="modalLevelTitle">Rank 1 • Novice Seeker</span>
-            <span class="theme-accent-text font-semibold" id="modalXpText">0 XP</span>
+            <span class="font-semibold text-slate-100" id="modalLevelTitle"
+              >Rank 1 • Novice Seeker</span
+            >
+            <span class="theme-accent-text font-semibold" id="modalXpText"
+              >0 XP</span
+            >
           </div>
-          <div class="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden">
-            <div id="xpProgressBar" class="theme-accent-bg h-full transition-all duration-500" style="width: 0%"></div>
+          <div
+            class="w-full bg-white/[0.06] h-1.5 rounded-full overflow-hidden"
+          >
+            <div
+              id="xpProgressBar"
+              class="theme-accent-bg h-full transition-all duration-500"
+              style="width: 0%"
+            ></div>
           </div>
           <div class="flex justify-between items-center gap-2">
-            <p id="nextLevelLabel" class="text-[9px] text-slate-500">500 XP until Rank 2</p>
-            <span id="lifetimeTotalDisplay" class="text-[9px] font-semibold text-slate-300 whitespace-nowrap">0 lifetime</span>
+            <p id="nextLevelLabel" class="text-[9px] text-slate-500">
+              500 XP until Rank 2
+            </p>
+            <span
+              id="lifetimeTotalDisplay"
+              class="text-[9px] font-semibold text-slate-300 whitespace-nowrap"
+              >0 lifetime</span
+            >
           </div>
         </section>
 
@@ -1294,14 +1376,38 @@
         </div>
         <div class="flex items-center justify-between">
           <span class="text-[11px] text-slate-300 flex items-center gap-1.5">
-            <svg viewBox="0 0 24 24" class="w-3 h-3 text-slate-500" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v5M16 2v5M4 12a8 8 0 0016 0V7H4v5a8 8 0 004 7z"/><path d="M7 16h.01M17 16h.01"/></svg>
+            <svg
+              viewBox="0 0 24 24"
+              class="w-3 h-3 text-slate-500"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M8 2v5M16 2v5M4 12a8 8 0 0016 0V7H4v5a8 8 0 004 7z" />
+              <path d="M7 16h.01M17 16h.01" />
+            </svg>
             Haptic feedback
           </span>
-          <button id="hapticsToggle" class="switch-track on" aria-label="Toggle haptic feedback"><span class="switch-thumb"></span></button>
+          <button
+            id="hapticsToggle"
+            class="switch-track on"
+            aria-label="Toggle haptic feedback"
+          >
+            <span class="switch-thumb"></span>
+          </button>
         </div>
         <div class="flex items-center justify-between">
-          <span class="text-[11px] text-slate-300">Daily reminder <span class="text-[9px] text-slate-500">8:00 PM</span></span>
-          <button id="reminderToggle" class="switch-track" aria-label="Toggle daily reminder"><span class="switch-thumb"></span></button>
+          <span class="text-[11px] text-slate-300"
+            >Daily reminder
+            <span class="text-[9px] text-slate-500">8:00 PM</span></span
+          >
+          <button
+            id="reminderToggle"
+            class="switch-track"
+            aria-label="Toggle daily reminder"
+          >
+            <span class="switch-thumb"></span>
+          </button>
         </div>
 
         <!-- Data Management -->
@@ -1393,7 +1499,9 @@
 
         <!-- More -->
         <div class="space-y-2 pt-3 border-t border-white/[0.06]">
-          <div class="flex items-center justify-between px-1 pb-1 text-[10px] text-slate-500">
+          <div
+            class="flex items-center justify-between px-1 pb-1 text-[10px] text-slate-500"
+          >
             <span>App version</span><span>3.4</span>
           </div>
           <button
