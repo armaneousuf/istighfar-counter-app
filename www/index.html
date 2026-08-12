@@ -1003,22 +1003,6 @@
 
         <section class="bg-black/20 rounded-xl border border-white/[0.05] p-3">
           <div class="flex items-baseline justify-between gap-3">
-            <p
-              class="text-[10px] text-slate-400 font-medium uppercase tracking-wide"
-            >
-              Lifetime Total
-            </p>
-            <span
-              id="lifetimeTotalDisplay"
-              class="text-[9px] font-semibold text-slate-300 whitespace-nowrap"
-            >
-              0 lifetime
-            </span>
-          </div>
-        </section>
-
-        <section class="bg-black/20 rounded-xl border border-white/[0.05] p-3">
-          <div class="flex items-baseline justify-between gap-3">
             <div>
               <p class="text-[10px] font-medium text-slate-300">Today</p>
               <p
@@ -1044,8 +1028,9 @@
           </div>
         </section>
 
-        <section>
-          <div class="flex justify-between items-center mb-1.5">
+        <section class="space-y-2">
+          <!-- Top Bar: Header & Status -->
+          <div class="flex justify-between items-center px-0.5">
             <h3 class="text-[11px] font-semibold text-slate-200">
               Last 7 days
             </h3>
@@ -1054,8 +1039,12 @@
               class="text-[9px] text-slate-500"
             ></span>
           </div>
+
+          <!-- 7-Day Stats Grid -->
           <div class="grid grid-cols-3 gap-1.5 text-center">
-            <div class="insight-stat p-2.5 rounded-xl">
+            <div
+              class="insight-stat p-2.5 rounded-xl bg-black/20 border border-white/[0.05]"
+            >
               <div
                 id="insightWeekTotal"
                 class="text-[14px] font-bold text-slate-100"
@@ -1068,7 +1057,10 @@
                 This week
               </div>
             </div>
-            <div class="insight-stat p-2.5 rounded-xl">
+
+            <div
+              class="insight-stat p-2.5 rounded-xl bg-black/20 border border-white/[0.05]"
+            >
               <div
                 id="insightActiveDays"
                 class="text-[14px] font-bold text-slate-100"
@@ -1081,7 +1073,10 @@
                 Active days
               </div>
             </div>
-            <div class="insight-stat p-2.5 rounded-xl">
+
+            <div
+              class="insight-stat p-2.5 rounded-xl bg-black/20 border border-white/[0.05]"
+            >
               <div id="statStreak" class="text-[14px] font-bold text-slate-100">
                 1
               </div>
@@ -1091,6 +1086,23 @@
                 Current streak
               </div>
             </div>
+          </div>
+
+          <!-- Lifetime Total Box -->
+          <div
+            class="bg-black/20 rounded-xl border border-white/[0.05] px-3 py-2.5 flex items-center justify-between gap-3"
+          >
+            <span
+              class="text-[9px] text-slate-400 font-semibold uppercase tracking-wider"
+            >
+              Lifetime Total
+            </span>
+            <span
+              id="lifetimeTotalDisplay"
+              class="text-[13px] font-bold text-slate-100 whitespace-nowrap"
+            >
+              0 lifetime
+            </span>
           </div>
         </section>
 
