@@ -1,5 +1,5 @@
 {
-  "name": "Istighfar Counter",
+  "name": "Istighfar",
   "short_name": "Istighfar",
   "start_url": "./index.html",
   "display": "standalone",
@@ -8,7 +8,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/7096/7096052.png",
+      "src": "assets/icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }

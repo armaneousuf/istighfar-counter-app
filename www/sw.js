@@ -1,11 +1,44 @@
-const CACHE_NAME = 'istighfar-cache-v1';
+const CACHE_NAME = 'istighfar-cache-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  'https://cdn.tailwindcss.com',
-  'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css',
-  'https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700;800&display=swap'
+  './tailwind.css',
+  './script.js',
+  './js/constants.js',
+  './js/storage.js',
+  './js/services/haptics.js',
+  './js/services/notifications.js',
+  './js/services/prayer.js',
+  './vendor/adhan/Adhan.js',
+  './vendor/adhan/Astronomical.js',
+  './vendor/adhan/CalculationMethod.js',
+  './vendor/adhan/CalculationParameters.js',
+  './vendor/adhan/Coordinates.js',
+  './vendor/adhan/DateUtils.js',
+  './vendor/adhan/HighLatitudeRule.js',
+  './vendor/adhan/Madhab.js',
+  './vendor/adhan/MathUtils.js',
+  './vendor/adhan/PolarCircleResolution.js',
+  './vendor/adhan/Prayer.js',
+  './vendor/adhan/PrayerTimes.js',
+  './vendor/adhan/Qibla.js',
+  './vendor/adhan/Rounding.js',
+  './vendor/adhan/Shafaq.js',
+  './vendor/adhan/SolarCoordinates.js',
+  './vendor/adhan/SolarTime.js',
+  './vendor/adhan/SunnahTimes.js',
+  './vendor/adhan/TimeComponents.js',
+  './vendor/adhan/TypeUtils.js',
+  './lib/chart.umd.js',
+  './assets/icon.png',
+  './assets/fonts/Inter-Light.ttf',
+  './assets/fonts/Inter-Regular.ttf',
+  './assets/fonts/Inter-Medium.ttf',
+  './assets/fonts/Inter-SemiBold.ttf',
+  './assets/fonts/Inter-Bold.ttf',
+  './assets/fonts/Inter-ExtraBold.ttf',
+  './assets/fonts/NotoNaskhArabic-Variable.ttf'
 ];
 
 self.addEventListener('install', (event) => {

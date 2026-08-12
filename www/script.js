@@ -1,114 +1,19 @@
-const STORAGE_KEY = 'ISTIGHFAR_APP_DATA_V4';
-
-const defaultState = {
-  count: 0,
-  target: 1000,
-  todayTotal: 0,
-  lifetimeTotal: 0,
-  kCompletedCount: 0,
-  streakDays: 1,
-  lastActiveDate: getFormattedDate(),
-  soundEnabled: true,
-  selectedDua: '1',
-  unlockedBadges: [],
-  dailyHistory: {}
-};
-
-const DB_NAME = 'IstighfarAppDB';
-const STORE_NAME = 'stateStore';
+import { defaultState, duaPhrases, getFormattedDate } from './js/constants.js';
+import { clearState, loadState, saveState as persistState } from './js/storage.js';
+import { hapticTap } from './js/services/haptics.js';
+import { setDailyReminder } from './js/services/notifications.js';
+import { calculatePrayerTimes, formatPrayerTime } from './js/services/prayer.js';
 
 // Anonymous Mode Global Variables
 let isAnonymous = false;
 let anonymousCount = 0;
 
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, 1);
-    request.onerror = (e) => reject(e.target.error);
-    request.onsuccess = (e) => resolve(e.target.result);
-    request.onupgradeneeded = (e) => {
-      const db = e.target.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        db.createObjectStore(STORE_NAME);
-      }
-    };
-  });
-}
-
-async function loadStateIDB() {
-  try {
-    const db = await openDB();
-    const tx = db.transaction(STORE_NAME, 'readonly');
-    const store = tx.objectStore(STORE_NAME);
-    const request = store.get('app_state');
-    
-    const idbState = await new Promise((resolve, reject) => {
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-
-    if (idbState) {
-      return {
-        ...defaultState,
-        ...idbState,
-        selectedDua: idbState.selectedDua || '1',
-        unlockedBadges: new Set(idbState.unlockedBadges || []),
-        dailyHistory: idbState.dailyHistory || {}
-      };
-    } else {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const migratedState = {
-          ...defaultState,
-          ...parsed,
-          selectedDua: parsed.selectedDua || '1',
-          unlockedBadges: new Set(parsed.unlockedBadges || []),
-          dailyHistory: parsed.dailyHistory || {}
-        };
-        await saveStateIDB(migratedState);
-        localStorage.removeItem(STORAGE_KEY);
-        return migratedState;
-      }
-    }
-  } catch (err) {
-    console.error('Failed to load state', err);
-    throw err;
-  }
-  return { ...defaultState, unlockedBadges: new Set(), dailyHistory: {} };
-}
-
 let state = null;
-
-async function saveStateIDB(stateToSave = state) {
-  if (!stateToSave || isAnonymous) return;
-  try {
-    const db = await openDB();
-    const tx = db.transaction(STORE_NAME, 'readwrite');
-    const store = tx.objectStore(STORE_NAME);
-    
-    const toSave = {
-      ...stateToSave,
-      unlockedBadges: Array.from(stateToSave.unlockedBadges)
-    };
-    
-    store.put(toSave, 'app_state');
-  } catch (err) {
-    console.error('Failed to save state to IDB', err);
-  }
-}
 
 function saveState() {
   if (!isAnonymous) {
-    saveStateIDB(state);
+    persistState(state).catch((err) => console.error('Failed to save state', err));
   }
-}
-
-function getFormattedDate(d = new Date()) {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 }
 
 const MILESTONES = [
@@ -134,12 +39,6 @@ const TIER_COLORS = [
   '#10b981', '#f472b6', '#e8a87c', '#00b894', '#00cec9'
 ];
 
-const duaPhrases = {
-  "1": { arabic: "أَسْتَغْفِرُ اللَّهَ", trans: '"I seek forgiveness from Allah"' },
-  "2": { arabic: "أَسْتَغْفِرُ اللَّهَ وَأَتُوبُ إِلَيْهِ", trans: '"I seek forgiveness from Allah and turn to Him in repentance"' },
-  "3": { arabic: "اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ خَلَقْتَنِي وَأَنَا عَبْدُكَ", trans: '"O Allah, You are my Lord. There is no deity except You..."' },
-  "4": { arabic: "رَبِّ اغْفِرْ لِي وَتُبْ عَلَيَّ", trans: '"My Lord, forgive me and accept my repentance"' }
-};
 
 const SVG_STAR   = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 2l2.6 5.6 6.1.7-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6-4.5-4.2 6.1-.7L12 2z"/></svg>`;
 const SVG_LOCK   = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>`;
@@ -181,6 +80,8 @@ const toastIcon = document.getElementById('toastIcon');
 
 // Controls
 const soundToggle = document.getElementById('soundToggle');
+const hapticsToggle = document.getElementById('hapticsToggle');
+const reminderToggle = document.getElementById('reminderToggle');
 const undoBtn = document.getElementById('undoBtn');
 const resetBtn = document.getElementById('resetBtn');
 
@@ -214,6 +115,13 @@ let weeklyChartInstance = null;
 const chartTotalLabel = document.getElementById('chartTotalLabel');
 const heatmapGrid = document.getElementById('heatmapGrid');
 const heatmapMonths = document.getElementById('heatmapMonths');
+const insightDate = document.getElementById('insightDate');
+const insightTodayProgress = document.getElementById('insightTodayProgress');
+const insightTodayRemaining = document.getElementById('insightTodayRemaining');
+const insightTodayBar = document.getElementById('insightTodayBar');
+const insightWeekTotal = document.getElementById('insightWeekTotal');
+const insightActiveDays = document.getElementById('insightActiveDays');
+const insightRhythmLabel = document.getElementById('insightRhythmLabel');
 
 // Stats Displays
 const modalLevelTitle = document.getElementById('modalLevelTitle');
@@ -232,11 +140,25 @@ const streakBigNumber = document.getElementById('streakBigNumber');
 const streakBestDisplay = document.getElementById('streakBestDisplay');
 const streak1kDisplay = document.getElementById('streak1kDisplay');
 const streakWeekRow = document.getElementById('streakWeekRow');
+const prayerList = document.getElementById('prayerList');
+const prayerStatus = document.getElementById('prayerStatus');
+const prayerLocation = document.getElementById('prayerLocation');
+const locationPermBtn = document.getElementById('locationPermBtn');
 
 const ringRadius = 124;
 const ringCircumference = 2 * Math.PI * ringRadius;
 
 let audioCtx = null;
+
+function getCurrentStreak(history = state?.dailyHistory || {}) {
+  let streak = 0;
+  const cursor = new Date();
+  while ((history[getFormattedDate(cursor)] || 0) > 0) {
+    streak++;
+    cursor.setDate(cursor.getDate() - 1);
+  }
+  return streak;
+}
 
 function playClickSound(pitchShift = 0) {
   if (!state.soundEnabled) return;
@@ -505,6 +427,48 @@ function renderWeeklyChart() {
   }
 }
 
+function getLastSevenDays() {
+  const days = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    days.push({
+      date: d,
+      count: state.dailyHistory[getFormattedDate(d)] || 0
+    });
+  }
+  return days;
+}
+
+function renderInsightSummary() {
+  if (!state) return;
+
+  const today = state.todayTotal || 0;
+  const target = state.target || 1000;
+  const percentage = Math.min(100, Math.round((today / target) * 100));
+  const remaining = Math.max(0, target - today);
+  const week = getLastSevenDays();
+  const weeklyTotal = week.reduce((sum, day) => sum + day.count, 0);
+  const activeDays = week.filter((day) => day.count > 0).length;
+
+  if (insightDate) {
+    insightDate.textContent = new Date().toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
+  }
+  if (insightTodayProgress) insightTodayProgress.textContent = today.toLocaleString();
+  if (insightTodayRemaining) {
+    insightTodayRemaining.textContent = percentage >= 100
+      ? `Goal reached · ${target.toLocaleString()}`
+      : `${remaining.toLocaleString()} remaining of ${target.toLocaleString()}`;
+  }
+  if (insightTodayBar) insightTodayBar.style.width = `${percentage}%`;
+  if (insightWeekTotal) insightWeekTotal.textContent = weeklyTotal.toLocaleString();
+  if (insightActiveDays) insightActiveDays.textContent = `${activeDays}/7`;
+  if (insightRhythmLabel) insightRhythmLabel.textContent = `${activeDays}/7 active`;
+}
+
 function renderHeatmap() {
   if (!heatmapGrid || !heatmapMonths) return;
   heatmapGrid.innerHTML = '';
@@ -632,6 +596,7 @@ function updateProgress() {
   if (streak1kDisplay) streak1kDisplay.textContent = state.kCompletedCount;
 
   updateRankDisplay();
+  renderInsightSummary();
 }
 
 function checkDailyReset() {
@@ -648,19 +613,10 @@ function checkDailyReset() {
   }
 
   if (lastActiveISO !== currentTodayStr) {
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = getFormattedDate(yesterday);
-    
-    if (lastActiveISO === yesterdayStr) {
-      state.streakDays++;
-    } else {
-      state.streakDays = 1;
-    }
-    
     state.todayTotal = 0;
     state.count = 0; 
     state.lastActiveDate = currentTodayStr;
+    state.streakDays = getCurrentStreak(state.dailyHistory);
     saveState();
 
     updateProgress();
@@ -692,6 +648,7 @@ function handleTap() {
       triggerTargetReward();
     }
     playClickSound(Math.min(300, Math.floor((anonymousCount % 100) / 10) * 8));
+    hapticTap(state.hapticsEnabled);
     updateProgress();
     return;
   }
@@ -710,6 +667,7 @@ function handleTap() {
 
   const iso = getFormattedDate();
   state.dailyHistory[iso] = (state.dailyHistory[iso] || 0) + 1;
+  state.streakDays = getCurrentStreak(state.dailyHistory);
 
   if (state.count === state.target) {
     triggerTargetReward();
@@ -717,6 +675,7 @@ function handleTap() {
 
   checkMilestones();
   playClickSound(Math.min(300, Math.floor((state.count % 100) / 10) * 8));
+  hapticTap(state.hapticsEnabled);
   updateProgress();
   saveState();
 }
@@ -739,6 +698,7 @@ function handleUndo() {
     if (state.dailyHistory[iso] && state.dailyHistory[iso] > 0) {
       state.dailyHistory[iso]--;
     }
+    state.streakDays = getCurrentStreak(state.dailyHistory);
 
     updateProgress();
     saveState();
@@ -773,12 +733,7 @@ function handleFullReset() {
       unlockedBadges: new Set(),
       dailyHistory: {}
     };
-    localStorage.removeItem(STORAGE_KEY);
-    openDB().then(db => {
-      const tx = db.transaction(STORE_NAME, 'readwrite');
-      tx.objectStore(STORE_NAME).delete('app_state');
-    }).catch(console.error);
-    saveState();
+    clearState().then(() => saveState()).catch(console.error);
     updateProgress();
     renderBadgesList();
     renderWeeklyChart();
@@ -788,7 +743,9 @@ function handleFullReset() {
 }
 
 function setTarget(newTarget) {
-  state.target = parseInt(newTarget) || 1000;
+  const parsedTarget = Number.parseInt(newTarget, 10);
+  if (!Number.isFinite(parsedTarget) || parsedTarget < 1 || parsedTarget > 1000000) return false;
+  state.target = parsedTarget;
   document.querySelectorAll('.target-btn').forEach(btn => {
     if (parseInt(btn.getAttribute('data-target')) === state.target) {
       btn.className = 'target-btn px-2 py-2 text-[11px] font-semibold rounded-lg theme-accent-bg text-slate-950 font-bold transition';
@@ -798,6 +755,43 @@ function setTarget(newTarget) {
   });
   updateProgress();
   saveState();
+  return true;
+}
+
+function renderPrayerTimes(latitude, longitude) {
+  const times = calculatePrayerTimes(latitude, longitude);
+  const entries = [
+    ['Fajr', times.fajr],
+    ['Sunrise', times.sunrise],
+    ['Dhuhr', times.dhuhr],
+    ['Asr', times.asr],
+    ['Maghrib', times.maghrib],
+    ['Isha', times.isha],
+    ['Sunset', times.sunset]
+  ];
+  prayerList.innerHTML = entries.map(([name, time]) => `
+    <div class="prayer-row ${name === 'Sunrise' || name === 'Sunset' ? 'opacity-75' : ''}">
+      <span class="flex items-center gap-2 text-[11px] font-medium text-slate-300">
+        <span class="w-1.5 h-1.5 rounded-full ${name === 'Sunrise' || name === 'Sunset' ? 'bg-amber-300' : 'theme-accent-bg'}"></span>${name}
+      </span>
+      <span class="text-[11px] text-slate-100 font-mono">${formatPrayerTime(time)}</span>
+    </div>`).join('');
+  prayerStatus.textContent = 'Karachi method · Hanafi Asr · calculated on device';
+  prayerLocation.textContent = `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`;
+  locationPermBtn.querySelector('span').textContent = 'Refresh current location';
+}
+
+function loadPrayerTimes() {
+  if (!navigator.geolocation) {
+    prayerStatus.textContent = 'Location is unavailable on this device.';
+    return;
+  }
+  prayerStatus.textContent = 'Finding your location…';
+  navigator.geolocation.getCurrentPosition(
+    ({ coords }) => renderPrayerTimes(coords.latitude, coords.longitude),
+    () => { prayerStatus.textContent = 'Allow location to calculate local prayer times.'; },
+    { enableHighAccuracy: false, timeout: 10000, maximumAge: 30 * 60 * 1000 }
+  );
 }
 
 // Focus Mode Logic
@@ -852,8 +846,11 @@ function setupBottomNavbar() {
       }
 
       if (targetViewId === 'view-insights') {
+        renderInsightSummary();
         renderWeeklyChart();
         renderHeatmap();
+      } else if (targetViewId === 'view-prayers') {
+        loadPrayerTimes();
       } else if (targetViewId === 'view-streaks') {
         renderStreakWeek();
         renderBadgesList();
@@ -886,7 +883,7 @@ focusOverlay.addEventListener('click', (e) => {
 document.querySelectorAll('.target-btn').forEach(btn => {
   btn.addEventListener('click', (e) => {
     const button = e.currentTarget;
-    setTarget(button.getAttribute('data-target'));
+    if (setTarget(button.getAttribute('data-target'))) targetModal.classList.add('hidden');
   });
 });
 
@@ -900,10 +897,12 @@ if (goalChipBtn) {
 cancelTargetBtn.addEventListener('click', () => targetModal.classList.add('hidden'));
 
 applyTargetBtn.addEventListener('click', () => {
-  const val = parseInt(customTargetInput.value);
-  if (val && val > 0) {
-    setTarget(val);
+  customTargetInput.setCustomValidity('');
+  if (setTarget(customTargetInput.value)) {
     targetModal.classList.add('hidden');
+  } else {
+    customTargetInput.setCustomValidity('Choose a whole-number goal between 1 and 1,000,000.');
+    customTargetInput.reportValidity();
   }
 });
 
@@ -922,6 +921,31 @@ soundToggle.addEventListener('click', () => {
   state.soundEnabled = !state.soundEnabled;
   soundToggle.classList.toggle('on', state.soundEnabled);
   saveState();
+});
+
+hapticsToggle.addEventListener('click', () => {
+  state.hapticsEnabled = !state.hapticsEnabled;
+  hapticsToggle.classList.toggle('on', state.hapticsEnabled);
+  saveState();
+});
+
+reminderToggle.addEventListener('click', async () => {
+  const enabled = !state.reminderEnabled;
+  reminderToggle.disabled = true;
+  const didSchedule = await setDailyReminder(enabled);
+  state.reminderEnabled = enabled && didSchedule;
+  reminderToggle.classList.toggle('on', state.reminderEnabled);
+  reminderToggle.disabled = false;
+  saveState();
+  if (enabled && !didSchedule) alert('Notification permission is needed to enable the daily reminder.');
+});
+
+locationPermBtn.addEventListener('click', loadPrayerTimes);
+
+document.addEventListener('click', (event) => {
+  if (state?.hapticsEnabled && event.target.closest('button') && !event.target.closest('#tapBtn')) {
+    hapticTap(true);
+  }
 });
 
 // Modals
@@ -1050,7 +1074,8 @@ async function initApp() {
   const loadingErrorText = document.getElementById('loadingErrorText');
 
   try {
-    state = await loadStateIDB();
+    state = await loadState();
+    state.streakDays = getCurrentStreak(state.dailyHistory);
     
     checkDailyReset();
 
@@ -1067,6 +1092,8 @@ async function initApp() {
 
     progressRing.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`;
     soundToggle.classList.toggle('on', state.soundEnabled);
+    hapticsToggle.classList.toggle('on', state.hapticsEnabled);
+    reminderToggle.classList.toggle('on', state.reminderEnabled);
     setupBottomNavbar();
     renderBadgesList();
     updateProgress();
