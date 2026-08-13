@@ -588,12 +588,15 @@ function updateProgress() {
   if (statTotalIstighfar) statTotalIstighfar.textContent = state.lifetimeTotal.toLocaleString();
   if (statStreak) statStreak.textContent = `${state.streakDays}`;
   if (statBestStreak) statBestStreak.textContent = `${state.streakDays}`;
-  if (stat1kCount) stat1kCount.textContent = state.kCompletedCount.toLocaleString();
+  // Derived directly from lifetimeTotal (source of truth) instead of a
+  // separately-incremented counter, so it can never drift out of sync.
+  const kCompletedCount = Math.floor(state.lifetimeTotal / 1000);
+  if (stat1kCount) stat1kCount.textContent = kCompletedCount.toLocaleString();
   if (statBadgesEarned) statBadgesEarned.textContent = `${state.unlockedBadges.size}/${MILESTONES.length}`;
 
   if (streakBigNumber) streakBigNumber.textContent = state.streakDays;
   if (streakBestDisplay) streakBestDisplay.textContent = state.streakDays;
-  if (streak1kDisplay) streak1kDisplay.textContent = state.kCompletedCount;
+  if (streak1kDisplay) streak1kDisplay.textContent = kCompletedCount;
 
   updateRankDisplay();
   renderInsightSummary();
@@ -658,12 +661,6 @@ function handleTap() {
   state.count++;
   state.todayTotal++;
   state.lifetimeTotal++;
-
-  // ✅ Count every time we hit a multiple of 1,000
-  if (state.count % 1000 === 0 && state.count > 0) {
-    state.kCompletedCount++;
-    // Optional: show a small toast or floating text for 1k completed
-  }
 
   const iso = getFormattedDate();
   state.dailyHistory[iso] = (state.dailyHistory[iso] || 0) + 1;
@@ -973,6 +970,48 @@ if (openGuideModalBtn && closeGuideModalBtn && guideModal) {
   });
   closeGuideModalBtn.addEventListener('click', () => {
     guideModal.classList.add('hidden');
+  });
+}
+
+// Progress & Rewards Modal
+const progressModal = document.getElementById('progressModal');
+const openProgressModalBtn = document.getElementById('openProgressModalBtn');
+const closeProgressModalBtn = document.getElementById('closeProgressModalBtn');
+
+if (openProgressModalBtn && closeProgressModalBtn && progressModal) {
+  openProgressModalBtn.addEventListener('click', () => {
+    progressModal.classList.remove('hidden');
+  });
+  closeProgressModalBtn.addEventListener('click', () => {
+    progressModal.classList.add('hidden');
+  });
+}
+
+// Tips for Consistency Modal
+const tipsModal = document.getElementById('tipsModal');
+const openTipsModalBtn = document.getElementById('openTipsModalBtn');
+const closeTipsModalBtn = document.getElementById('closeTipsModalBtn');
+
+if (openTipsModalBtn && closeTipsModalBtn && tipsModal) {
+  openTipsModalBtn.addEventListener('click', () => {
+    tipsModal.classList.remove('hidden');
+  });
+  closeTipsModalBtn.addEventListener('click', () => {
+    tipsModal.classList.add('hidden');
+  });
+}
+
+// About Modal
+const aboutModal = document.getElementById('aboutModal');
+const openAboutModalBtn = document.getElementById('openAboutModalBtn');
+const closeAboutModalBtn = document.getElementById('closeAboutModalBtn');
+
+if (openAboutModalBtn && closeAboutModalBtn && aboutModal) {
+  openAboutModalBtn.addEventListener('click', () => {
+    aboutModal.classList.remove('hidden');
+  });
+  closeAboutModalBtn.addEventListener('click', () => {
+    aboutModal.classList.add('hidden');
   });
 }
 
