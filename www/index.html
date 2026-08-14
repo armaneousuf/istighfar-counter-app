@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <title>Istighfar</title>
 
@@ -315,6 +315,10 @@
           opacity: 1;
           transform: translateY(0);
         }
+      }
+
+      #appHeader {
+        padding-top: calc(0.625rem + env(safe-area-inset-top, 0px));
       }
 
       /* Bottom Nav */
@@ -1516,7 +1520,7 @@
           <div
             class="flex items-center justify-between px-1 pb-1 text-[10px] text-slate-500"
           >
-            <span>App version</span><span>3.6</span>
+            <span>App version</span><span>3.7</span>
           </div>
           <button
             id="infoBtn"
