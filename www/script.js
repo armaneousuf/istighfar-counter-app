@@ -67,6 +67,18 @@ const lifetimeTotalDisplay = document.getElementById('lifetimeTotalDisplay');
 const floatContainer = document.getElementById('floatContainer');
 const badgesContainer = document.getElementById('badgesContainer');
 
+// Playground Elements
+const pgTargetChips = document.querySelectorAll('.pg-target-chip');
+const pgTapBtn = document.getElementById('pgTapBtn');
+const pgCounterDisplay = document.getElementById('pgCounterDisplay');
+const pgTargetLabel = document.getElementById('pgTargetLabel');
+const pgProgressRing = document.getElementById('pgProgressRing');
+const pgFloatContainer = document.getElementById('pgFloatContainer');
+const pgRoundsToday = document.getElementById('pgRoundsToday');
+const pgResetBtn = document.getElementById('pgResetBtn');
+const pgCustomChip = document.getElementById('pgCustomChip');
+const pgRingCircumference = 2 * Math.PI * 110;
+
 // Anonymous Mode UI Elements
 const anonymousBtn = document.getElementById('anonymousBtn');
 const anonymousBanner = document.getElementById('anonymousBanner');
@@ -204,6 +216,118 @@ function playMilestoneSound() {
       osc.stop(audioCtx.currentTime + idx * 0.08 + 0.35);
     });
   } catch (e) {}
+}
+
+// ============ PLAYGROUND (free-count tab) ============
+// Independent of the main Istighfar counter/streaks — a lightweight
+// round-based tally for reciting any dua, with sound + haptic on completion.
+let pgCount = 0;
+
+function playRoundCompleteSound() {
+  if (!state.soundEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const notes = [659.25, 987.77];
+    notes.forEach((freq, idx) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
+
+      gain.gain.setValueAtTime(0.28, audioCtx.currentTime + idx * 0.12);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + idx * 0.12 + 0.3);
+
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start(audioCtx.currentTime + idx * 0.12);
+      osc.stop(audioCtx.currentTime + idx * 0.12 + 0.3);
+    });
+  } catch (e) {}
+}
+
+function checkPlaygroundDailyReset() {
+  const todayStr = getFormattedDate();
+  if (state.playgroundRoundsDate !== todayStr) {
+    state.playgroundRoundsDate = todayStr;
+    state.playgroundRoundsToday = 0;
+    saveState();
+  }
+}
+
+function renderPlaygroundChips() {
+  const target = state.playgroundTarget;
+  const isPreset = [33, 99, 100].includes(target);
+  pgTargetChips.forEach((chip) => {
+    const chipTarget = chip.getAttribute('data-target');
+    const isActive = chipTarget === 'custom'
+      ? !isPreset
+      : Number(chipTarget) === target;
+    chip.classList.toggle('active', isActive);
+  });
+  if (pgCustomChip) {
+    pgCustomChip.textContent = isPreset ? 'Custom' : `Custom (${target})`;
+  }
+}
+
+function updatePlaygroundDisplay() {
+  if (pgCounterDisplay) pgCounterDisplay.textContent = pgCount.toLocaleString();
+  if (pgTargetLabel) pgTargetLabel.textContent = state.playgroundTarget.toLocaleString();
+  if (pgRoundsToday) pgRoundsToday.textContent = state.playgroundRoundsToday.toLocaleString();
+
+  const progress = Math.min(pgCount / state.playgroundTarget, 1);
+  const offset = pgRingCircumference - (progress * pgRingCircumference);
+  if (pgProgressRing) pgProgressRing.style.strokeDashoffset = offset;
+}
+
+function renderPlayground() {
+  checkPlaygroundDailyReset();
+  renderPlaygroundChips();
+  updatePlaygroundDisplay();
+}
+
+function setPlaygroundTarget(newTarget) {
+  const target = Math.max(1, Math.floor(newTarget));
+  if (!target) return;
+  state.playgroundTarget = target;
+  pgCount = 0;
+  renderPlaygroundChips();
+  updatePlaygroundDisplay();
+  saveState();
+}
+
+function spawnPlaygroundFloat(text) {
+  if (!pgFloatContainer) return;
+  const el = document.createElement('div');
+  el.className = 'floating-milestone text-[13px] font-semibold text-slate-100 bg-slate-900/95 border theme-accent-border px-3 py-1.5 rounded-full soft-shadow backdrop-blur-md flex items-center gap-1.5';
+  el.innerHTML = `<span class="theme-accent-text">${SVG_STAR}</span><span>${text}</span>`;
+  pgFloatContainer.appendChild(el);
+  setTimeout(() => el.remove(), 1400);
+}
+
+function handlePlaygroundTap() {
+  pgCount++;
+
+  if (pgCount >= state.playgroundTarget) {
+    checkPlaygroundDailyReset();
+    state.playgroundRoundsToday++;
+    playRoundCompleteSound();
+    hapticTap(state.hapticsEnabled);
+    spawnPlaygroundFloat(`Round complete · ${state.playgroundTarget}`);
+    pgCount = 0;
+    saveState();
+  } else {
+    playClickSound(Math.min(300, Math.floor((pgCount % 100) / 10) * 8));
+    hapticTap(state.hapticsEnabled);
+  }
+
+  updatePlaygroundDisplay();
+}
+
+function handlePlaygroundReset() {
+  pgCount = 0;
+  updatePlaygroundDisplay();
 }
 
 function triggerTargetReward() {
@@ -357,17 +481,12 @@ function renderWeeklyChart() {
   const counts = [];
   let weeklySum = 0;
 
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const iso = getFormattedDate(d);
-    const count = state.dailyHistory[iso] || 0;
+  getCurrentWeekDays().forEach(({ date: d, count }) => {
     weeklySum += count;
-
     const dayName = d.toLocaleDateString('en-US', { weekday: 'narrow' });
     days.push(dayName);
     counts.push(count);
-  }
+  });
 
   if (chartTotalLabel) chartTotalLabel.textContent = `${weeklySum.toLocaleString()} total this week`;
 
@@ -427,11 +546,15 @@ function renderWeeklyChart() {
   }
 }
 
-function getLastSevenDays() {
+function getCurrentWeekDays() {
+  const today = new Date();
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - today.getDay()); // back up to this week's Sunday
+
   const days = [];
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(sunday);
+    d.setDate(sunday.getDate() + i);
     days.push({
       date: d,
       count: state.dailyHistory[getFormattedDate(d)] || 0
@@ -447,7 +570,7 @@ function renderInsightSummary() {
   const target = state.target || 1000;
   const percentage = Math.min(100, Math.round((today / target) * 100));
   const remaining = Math.max(0, target - today);
-  const week = getLastSevenDays();
+  const week = getCurrentWeekDays();
   const weeklyTotal = week.reduce((sum, day) => sum + day.count, 0);
   const activeDays = week.filter((day) => day.count > 0).length;
 
@@ -536,16 +659,12 @@ function renderHeatmap() {
 function renderStreakWeek() {
   if (!streakWeekRow) return;
   streakWeekRow.innerHTML = '';
-  const daysOfWeek = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-  const today = new Date();
-  const currentDayIdx = today.getDay();
+  const week = getCurrentWeekDays(); // calendar week, Sun–Sat, matches Insights/chart
+  const todayStr = getFormattedDate();
 
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() - (currentDayIdx - i));
-    const iso = getFormattedDate(d);
-    const count = state.dailyHistory[iso] || 0;
-    const isToday = i === currentDayIdx;
+  week.forEach(({ date: d, count }) => {
+    const isToday = getFormattedDate(d) === todayStr;
+    const dayLetter = d.toLocaleDateString('en-US', { weekday: 'narrow' });
 
     const dot = document.createElement('div');
     let colorClass = 'bg-white/[0.05] text-slate-500';
@@ -557,10 +676,10 @@ function renderStreakWeek() {
     }
 
     dot.className = `streak-dot ${colorClass}`;
-    dot.textContent = daysOfWeek[i];
+    dot.textContent = dayLetter;
     dot.setAttribute('data-tooltip', `${d.toLocaleDateString('en-US', { weekday: 'short' })}: ${count.toLocaleString()}`);
     streakWeekRow.appendChild(dot);
-  }
+  });
 }
 
 function updateProgress() {
@@ -864,10 +983,33 @@ function setupBottomNavbar() {
       } else if (targetViewId === 'view-streaks') {
         renderStreakWeek();
         renderBadgesList();
+      } else if (targetViewId === 'view-playground') {
+        renderPlayground();
       }
     });
   });
 }
+
+// Playground Event Listeners
+if (pgTapBtn) pgTapBtn.addEventListener('click', handlePlaygroundTap);
+if (pgResetBtn) pgResetBtn.addEventListener('click', handlePlaygroundReset);
+pgTargetChips.forEach((chip) => {
+  chip.addEventListener('click', () => {
+    const raw = chip.getAttribute('data-target');
+    if (raw === 'custom') {
+      const input = window.prompt('Set a custom target for this round:', state.playgroundTarget);
+      if (input === null) return;
+      const parsed = parseInt(input, 10);
+      if (!Number.isFinite(parsed) || parsed < 1 || parsed > 100000) {
+        window.alert('Please enter a whole number between 1 and 100,000.');
+        return;
+      }
+      setPlaygroundTarget(parsed);
+    } else {
+      setPlaygroundTarget(Number(raw));
+    }
+  });
+});
 
 // Event Listeners
 tapBtn.addEventListener('click', handleTap);
