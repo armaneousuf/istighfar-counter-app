@@ -93,7 +93,6 @@ const toastIcon = document.getElementById('toastIcon');
 // Controls
 const soundToggle = document.getElementById('soundToggle');
 const hapticsToggle = document.getElementById('hapticsToggle');
-const reminderToggle = document.getElementById('reminderToggle');
 const undoBtn = document.getElementById('undoBtn');
 const resetBtn = document.getElementById('resetBtn');
 
@@ -101,6 +100,7 @@ const resetBtn = document.getElementById('resetBtn');
 const focusBtn = document.getElementById('focusBtn');
 const focusOverlay = document.getElementById('focusOverlay');
 const exitFocusBtn = document.getElementById('exitFocusBtn');
+const focusCount = document.getElementById('focusCount');
 
 // Modals
 const infoModal = document.getElementById('infoModal');
@@ -132,6 +132,9 @@ const insightTodayProgress = document.getElementById('insightTodayProgress');
 const insightTodayRemaining = document.getElementById('insightTodayRemaining');
 const insightTodayBar = document.getElementById('insightTodayBar');
 const insightWeekTotal = document.getElementById('insightWeekTotal');
+const insightWeekChange = document.getElementById('insightWeekChange');
+const insightMonthTotal = document.getElementById('insightMonthTotal');
+const insightMonthChange = document.getElementById('insightMonthChange');
 const insightActiveDays = document.getElementById('insightActiveDays');
 const insightRhythmLabel = document.getElementById('insightRhythmLabel');
 
@@ -156,6 +159,11 @@ const prayerList = document.getElementById('prayerList');
 const prayerStatus = document.getElementById('prayerStatus');
 const prayerLocation = document.getElementById('prayerLocation');
 const locationPermBtn = document.getElementById('locationPermBtn');
+const nextPrayerName = document.getElementById('nextPrayerName');
+const nextPrayerTime = document.getElementById('nextPrayerTime');
+const nextPrayerCountdown = document.getElementById('nextPrayerCountdown');
+let nextPrayerDate = null;
+let nextPrayerTimer = null;
 
 const ringRadius = 124;
 const ringCircumference = 2 * Math.PI * ringRadius;
@@ -473,6 +481,43 @@ function renderBadgesList() {
   });
 }
 
+function getRecentDays(days, endOffset = 0) {
+  const result = [];
+  const end = new Date();
+  end.setHours(0, 0, 0, 0);
+  end.setDate(end.getDate() - endOffset);
+
+  for (let i = days - 1; i >= 0; i--) {
+    const date = new Date(end);
+    date.setDate(end.getDate() - i);
+    result.push({
+      date,
+      count: Number(state.dailyHistory[getFormattedDate(date)]) || 0
+    });
+  }
+  return result;
+}
+
+function getMonthTotal(monthOffset = 0) {
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
+  const monthEnd = new Date(now.getFullYear(), now.getMonth() + monthOffset + 1, 0);
+  let total = 0;
+
+  for (const [date, count] of Object.entries(state.dailyHistory)) {
+    const parsed = new Date(`${date}T00:00:00`);
+    if (parsed >= monthStart && parsed <= monthEnd) total += Number(count) || 0;
+  }
+  return total;
+}
+
+function formatChange(current, previous) {
+  const difference = current - previous;
+  if (difference === 0) return 'Same as previous period';
+  const direction = difference > 0 ? 'more' : 'less';
+  return `${difference > 0 ? '+' : '−'}${Math.abs(difference).toLocaleString()} ${direction}`;
+}
+
 function renderWeeklyChart() {
   if (!weeklyChartCanvas) return;
   const ctx = weeklyChartCanvas.getContext('2d');
@@ -481,14 +526,14 @@ function renderWeeklyChart() {
   const counts = [];
   let weeklySum = 0;
 
-  getCurrentWeekDays().forEach(({ date: d, count }) => {
+  getRecentDays(7).forEach(({ date: d, count }) => {
     weeklySum += count;
     const dayName = d.toLocaleDateString('en-US', { weekday: 'narrow' });
     days.push(dayName);
     counts.push(count);
   });
 
-  if (chartTotalLabel) chartTotalLabel.textContent = `${weeklySum.toLocaleString()} total this week`;
+  if (chartTotalLabel) chartTotalLabel.textContent = `${weeklySum.toLocaleString()} in 7 days`;
 
   if (weeklyChartInstance) {
     weeklyChartInstance.data.labels = days;
@@ -546,23 +591,6 @@ function renderWeeklyChart() {
   }
 }
 
-function getCurrentWeekDays() {
-  const today = new Date();
-  const sunday = new Date(today);
-  sunday.setDate(today.getDate() - today.getDay()); // back up to this week's Sunday
-
-  const days = [];
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(sunday);
-    d.setDate(sunday.getDate() + i);
-    days.push({
-      date: d,
-      count: state.dailyHistory[getFormattedDate(d)] || 0
-    });
-  }
-  return days;
-}
-
 function renderInsightSummary() {
   if (!state) return;
 
@@ -570,8 +598,11 @@ function renderInsightSummary() {
   const target = state.target || 1000;
   const percentage = Math.min(100, Math.round((today / target) * 100));
   const remaining = Math.max(0, target - today);
-  const week = getCurrentWeekDays();
+  const week = getRecentDays(7);
   const weeklyTotal = week.reduce((sum, day) => sum + day.count, 0);
+  const previousWeeklyTotal = getRecentDays(7, 7).reduce((sum, day) => sum + day.count, 0);
+  const monthTotal = getMonthTotal();
+  const previousMonthTotal = getMonthTotal(-1);
   const activeDays = week.filter((day) => day.count > 0).length;
 
   if (insightDate) {
@@ -588,6 +619,9 @@ function renderInsightSummary() {
   }
   if (insightTodayBar) insightTodayBar.style.width = `${percentage}%`;
   if (insightWeekTotal) insightWeekTotal.textContent = weeklyTotal.toLocaleString();
+  if (insightWeekChange) insightWeekChange.textContent = formatChange(weeklyTotal, previousWeeklyTotal);
+  if (insightMonthTotal) insightMonthTotal.textContent = monthTotal.toLocaleString();
+  if (insightMonthChange) insightMonthChange.textContent = formatChange(monthTotal, previousMonthTotal);
   if (insightActiveDays) insightActiveDays.textContent = `${activeDays}/7`;
   if (insightRhythmLabel) insightRhythmLabel.textContent = `${activeDays}/7 active`;
 }
@@ -659,7 +693,7 @@ function renderHeatmap() {
 function renderStreakWeek() {
   if (!streakWeekRow) return;
   streakWeekRow.innerHTML = '';
-  const week = getCurrentWeekDays(); // calendar week, Sun–Sat, matches Insights/chart
+  const week = getRecentDays(7);
   const todayStr = getFormattedDate();
 
   week.forEach(({ date: d, count }) => {
@@ -685,6 +719,7 @@ function renderStreakWeek() {
 function updateProgress() {
   const currentDisplayCount = isAnonymous ? anonymousCount : state.count;
   counterDisplay.textContent = currentDisplayCount.toLocaleString();
+  if (focusCount) focusCount.textContent = currentDisplayCount.toLocaleString();
 
   if (isAnonymous) {
     if (todayTotalDisplay) todayTotalDisplay.textContent = '—';
@@ -719,6 +754,7 @@ function updateProgress() {
 
   updateRankDisplay();
   renderInsightSummary();
+  renderStreakWeek();
 }
 
 function checkDailyReset() {
@@ -874,6 +910,20 @@ function setTarget(newTarget) {
   return true;
 }
 
+function formatCountdown(date) {
+  const remainingMs = Math.max(0, date - new Date());
+  const totalMinutes = Math.ceil(remainingMs / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) return `in ${hours}h ${minutes}m`;
+  return totalMinutes > 0 ? `in ${minutes} min` : 'now';
+}
+
+function updateNextPrayerCountdown() {
+  if (!nextPrayerCountdown || !nextPrayerDate) return;
+  nextPrayerCountdown.textContent = `${formatCountdown(nextPrayerDate)} · ${nextPrayerDate.toDateString() === new Date().toDateString() ? 'today' : 'tomorrow'}`;
+}
+
 function renderPrayerTimes(latitude, longitude) {
   const times = calculatePrayerTimes(latitude, longitude);
   const entries = [
@@ -885,15 +935,32 @@ function renderPrayerTimes(latitude, longitude) {
     ['Isha', times.isha],
     ['Sunset', times.sunset]
   ];
-  prayerList.innerHTML = entries.map(([name, time]) => `
-    <div class="prayer-row ${name === 'Sunrise' || name === 'Sunset' ? 'opacity-75' : ''}">
-      <span class="flex items-center gap-2 text-[11px] font-medium text-slate-300">
-        <span class="w-1.5 h-1.5 rounded-full ${name === 'Sunrise' || name === 'Sunset' ? 'bg-amber-300' : 'theme-accent-bg'}"></span>${name}
+  const now = new Date();
+  let next = entries.find(([name, time]) => !['Sunrise', 'Sunset'].includes(name) && time > now);
+  if (!next) {
+    const tomorrow = calculatePrayerTimes(latitude, longitude, new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
+    next = ['Fajr', tomorrow.fajr];
+  }
+  nextPrayerDate = next[1];
+
+  if (nextPrayerName) nextPrayerName.textContent = next[0];
+  if (nextPrayerTime) nextPrayerTime.textContent = formatPrayerTime(next[1]);
+  updateNextPrayerCountdown();
+  if (nextPrayerTimer) clearInterval(nextPrayerTimer);
+  nextPrayerTimer = setInterval(updateNextPrayerCountdown, 60000);
+
+  prayerList.innerHTML = entries.map(([name, time]) => {
+    const isMarker = name === 'Sunrise' || name === 'Sunset';
+    const isNext = name === next[0] && time.getTime() === next[1].getTime();
+    return `<div class="prayer-row ${isMarker ? 'opacity-60' : ''} ${isNext ? 'border theme-accent-border bg-emerald-500/[0.08]' : ''}">
+      <span class="flex items-center gap-2.5 text-[11px] font-medium ${isNext ? 'text-slate-100' : 'text-slate-300'}">
+        <span class="w-1.5 h-1.5 rounded-full ${isMarker ? 'bg-amber-300' : 'theme-accent-bg'}"></span>${name}${isNext ? '<span class="text-[8px] theme-accent-text uppercase tracking-wide">Next</span>' : ''}
       </span>
-      <span class="text-[11px] text-slate-100 font-mono">${formatPrayerTime(time)}</span>
-    </div>`).join('');
+      <span class="text-[11px] ${isNext ? 'text-slate-100' : 'text-slate-400'} font-mono">${formatPrayerTime(time)}</span>
+    </div>`;
+  }).join('');
   prayerStatus.textContent = 'Karachi method · Hanafi Asr · calculated on device';
-  prayerLocation.textContent = `${latitude.toFixed(3)}, ${longitude.toFixed(3)}`;
+  prayerLocation.textContent = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
   locationPermBtn.querySelector('span').textContent = 'Refresh current location';
 }
 
@@ -925,6 +992,7 @@ function loadPrayerTimes() {
 
 // Focus Mode Logic
 function enableFocusMode() {
+  if (focusCount) focusCount.textContent = (isAnonymous ? anonymousCount : state.count).toLocaleString();
   document.body.classList.add('focus-mode');
   focusOverlay.classList.remove('hidden');
 }
@@ -980,9 +1048,6 @@ function setupBottomNavbar() {
         renderHeatmap();
       } else if (targetViewId === 'view-prayers') {
         loadPrayerTimes();
-      } else if (targetViewId === 'view-streaks') {
-        renderStreakWeek();
-        renderBadgesList();
       } else if (targetViewId === 'view-playground') {
         renderPlayground();
       }
@@ -1081,17 +1146,6 @@ hapticsToggle.addEventListener('click', () => {
   saveState();
 });
 
-reminderToggle.addEventListener('click', async () => {
-  const enabled = !state.reminderEnabled;
-  reminderToggle.disabled = true;
-  const didSchedule = await setDailyReminder(enabled);
-  state.reminderEnabled = enabled && didSchedule;
-  reminderToggle.classList.toggle('on', state.reminderEnabled);
-  reminderToggle.disabled = false;
-  saveState();
-  if (enabled && !didSchedule) alert('Notification permission is needed to enable the daily reminder.');
-});
-
 locationPermBtn.addEventListener('click', () => {
   clearSavedLocation();
   loadPrayerTimes();
@@ -1163,6 +1217,9 @@ exportDataBtn.addEventListener('click', async () => {
 
   const exportPayload = {
     ...state,
+    // Keep this legacy field accurate for restores and external readers.
+    // Lifetime total is the single source of truth for completed 1k milestones.
+    kCompletedCount: Math.floor((Number(state.lifetimeTotal) || 0) / 1000),
     unlockedBadges: Array.from(state.unlockedBadges)
   };
   const jsonStr = JSON.stringify(exportPayload, null, 2);
@@ -1230,6 +1287,7 @@ importFileInput.addEventListener('change', (e) => {
           unlockedBadges: new Set(Array.isArray(imported.unlockedBadges) ? imported.unlockedBadges : []),
           dailyHistory: imported.dailyHistory || {}
         };
+        state.kCompletedCount = Math.floor((Number(state.lifetimeTotal) || 0) / 1000);
         saveState();
         
         if (state.selectedDua && duaPhrases[state.selectedDua]) {
@@ -1266,6 +1324,13 @@ async function initApp() {
 
   try {
     state = await loadState();
+    // The reminder preference was retired. Clear any prior scheduled reminder
+    // so people who had it enabled are not left with a background notification.
+    if (state.reminderEnabled) {
+      state.reminderEnabled = false;
+      setDailyReminder(false).catch((err) => console.warn('Unable to clear retired reminder', err));
+      saveState();
+    }
     state.streakDays = getCurrentStreak(state.dailyHistory);
     
     checkDailyReset();
@@ -1284,7 +1349,6 @@ async function initApp() {
     progressRing.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`;
     soundToggle.classList.toggle('on', state.soundEnabled);
     hapticsToggle.classList.toggle('on', state.hapticsEnabled);
-    reminderToggle.classList.toggle('on', state.reminderEnabled);
     setupBottomNavbar();
     renderBadgesList();
     updateProgress();
