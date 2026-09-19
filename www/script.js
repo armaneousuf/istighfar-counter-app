@@ -1164,11 +1164,13 @@ function setTarget(newTarget) {
 
 function formatCountdown(date) {
   const remainingMs = Math.max(0, date - new Date());
-  const totalMinutes = Math.ceil(remainingMs / 60000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (hours > 0) return `in ${hours}h ${minutes}m`;
-  return totalMinutes > 0 ? `in ${minutes} min` : "now";
+  const totalSeconds = Math.ceil(remainingMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) return `in ${hours}h ${minutes}m ${seconds}s`;
+  if (minutes > 0) return `in ${minutes}m ${seconds}s`;
+  return totalSeconds > 0 ? `in ${seconds}s` : "now";
 }
 
 function updateNextPrayerCountdown() {
@@ -1205,7 +1207,7 @@ function renderPrayerTimes(latitude, longitude) {
   if (nextPrayerTime) nextPrayerTime.textContent = formatPrayerTime(next[1]);
   updateNextPrayerCountdown();
   if (nextPrayerTimer) clearInterval(nextPrayerTimer);
-  nextPrayerTimer = setInterval(updateNextPrayerCountdown, 60000);
+  nextPrayerTimer = setInterval(updateNextPrayerCountdown, 1000);
 
   prayerList.innerHTML = entries
     .map(([name, time]) => {
