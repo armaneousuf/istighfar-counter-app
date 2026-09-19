@@ -216,6 +216,7 @@ const infoBtn = document.getElementById("infoBtn");
 const closeInfoModal = document.getElementById("closeInfoModal");
 
 const settingsModal = document.getElementById("view-settings");
+const lastUpdateLabel = document.getElementById("last-update-days");
 
 const targetModal = document.getElementById("targetModal");
 const goalChipBtn = document.getElementById("goalChipBtn");
@@ -1608,6 +1609,30 @@ importFileInput.addEventListener("change", (e) => {
   reader.readAsText(file);
 });
 
+// Bump this to the date of each release; the settings label derives
+// its "X days ago" text from this automatically.
+const APP_LAST_UPDATED = "2026-09-19";
+
+function updateLastUpdatedLabel() {
+  if (!lastUpdateLabel) return;
+
+  const lastUpdateDate = new Date(APP_LAST_UPDATED);
+  const now = new Date();
+
+  const startOfLast = new Date(
+    lastUpdateDate.getFullYear(),
+    lastUpdateDate.getMonth(),
+    lastUpdateDate.getDate(),
+  );
+  const startOfNow = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+  const diffDays = Math.round((startOfNow - startOfLast) / 86400000);
+
+  if (diffDays <= 0) lastUpdateLabel.textContent = "Today";
+  else if (diffDays === 1) lastUpdateLabel.textContent = "1 day ago";
+  else lastUpdateLabel.textContent = `${diffDays} days ago`;
+}
+
 async function initApp() {
   const loadingState = document.getElementById("appLoadingState");
   const loadingSpinner = document.getElementById("loadingSpinner");
@@ -1646,6 +1671,7 @@ async function initApp() {
     setupBottomNavbar();
     renderBadgesList();
     updateProgress();
+    updateLastUpdatedLabel();
 
     if (loadingState) {
       loadingState.style.opacity = "0";
