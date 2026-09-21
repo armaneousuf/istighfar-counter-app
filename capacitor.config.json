@@ -1,5 +1,12 @@
 {
   "appId": "com.istighfar.app",
   "appName": "Istighfar",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DARK",
+      "hidden": false
+    }
+  }
 }
