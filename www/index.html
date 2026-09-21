@@ -19,6 +19,16 @@
     <link rel="apple-touch-icon" href="assets/icon.png" />
     <link rel="stylesheet" href="tailwind.css" />
     <style>
+      * {
+        -webkit-tap-highlight-color: transparent;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+      }
+      
+      *::-webkit-scrollbar {
+        display: none;
+      }
+
       @font-face {
         font-family: "Inter";
         src: url("assets/fonts/Inter-Light.ttf") format("truetype");
@@ -67,10 +77,6 @@
         font-weight: 400 700;
         font-style: normal;
         font-display: swap;
-      }
-
-      * {
-        -webkit-tap-highlight-color: transparent;
       }
 
       .font-arabic {
@@ -259,18 +265,6 @@
       .switch-track.on .switch-thumb {
         transform: translateX(15px);
         background: #06120c;
-      }
-
-      ::-webkit-scrollbar {
-        width: 1px;
-        height: 1px;
-      }
-      ::-webkit-scrollbar-track {
-        background: transparent;
-      }
-      ::-webkit-scrollbar-thumb {
-        background: #374151;
-        border-radius: 9999px;
       }
 
       /* Focus Mode Overlay */
@@ -820,7 +814,7 @@
                 </svg>
               </summary>
               <div
-                class="absolute bottom-10 right-0 z-20 w-40 p-1.5 rounded-xl bg-slate-900 border border-white/[0.1] soft-shadow space-y-1"
+                class="absolute bottom-10 right-0 z-20 w-40 p-1.5 rounded-xl bg-[var(--card-bg)] border border-white/[0.1] soft-shadow space-y-1"
               >
                 <button
                   id="undoBtn"
@@ -1495,7 +1489,7 @@
           <div
             class="flex items-center justify-between px-1 pb-1 text-[10px] text-slate-500"
           >
-            <span>App version</span><span>3.7.0</span>
+            <span>App version</span><span>3.7.1</span>
           </div>
           <div
             class="flex items-center justify-between px-1 pb-1 text-[10px] text-slate-500"
