@@ -15,6 +15,7 @@ cd android
 
 When releasing a new update (e.g. v2.3):
 
+0. Use `node /scripts/bump-version.js 3.x.x.x` to auto update version numbers
 1. Open `android/app/build.gradle`, increase `versionCode` by 1, and change `versionName` (for example, to `"3.4"`).
 2. Open `www/index.html` and update the `App version` value in Settings to `3.4`.
 3. Update `package.json` to `3.4.0` if you are making a release.

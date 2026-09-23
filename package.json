@@ -1,9 +1,10 @@
 {
   "name": "istighfar-app",
-  "version": "3.8.2.21",
+  "version": "3.8.3",
   "description": "",
   "main": "sw.js",
   "scripts": {
+    "version:bump": "node scripts/bump-version.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:css": "tailwindcss -i ./tailwind.input.css -o ./www/tailwind.css --minify"
   },
