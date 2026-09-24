@@ -423,6 +423,76 @@ function playRoundCompleteSound() {
   } catch (e) {}
 }
 
+// ============ GUARDED TAP DETECTION ============
+// A plain "click" fires for grazes, drags, and even a finger resting on the
+// screen, so an accidental touch would count. We instead track pointer down/up
+// and only accept a tap that clearly looks intentional:
+//   - a single pointer only (a second finger means it is almost certainly not
+//     a deliberate tap),
+//   - released close to where it started (kills drags/scrolls),
+//   - held for a plausible short time (kills resting your finger / holding the
+//     phone against it),
+//   - and not too soon after the previous accepted tap (one physical gesture can
+//     never count twice).
+// The hold window is deliberately generous (max 800ms) so slow, deliberate taps
+// are never dropped — one extra count is far less frustrating than a missed one.
+const TAP_MOVE_TOLERANCE_PX = 10;
+const TAP_MIN_DURATION_MS = 30;
+const TAP_MAX_DURATION_MS = 800;
+const TAP_COOLDOWN_MS = 100;
+
+function bindGuardedTap(el, onTap) {
+  let pointerId = null;
+  let startX = 0;
+  let startY = 0;
+  let startTime = 0;
+  let lastAccepted = 0;
+
+  const reset = () => {
+    pointerId = null;
+  };
+
+  el.addEventListener("pointerdown", (e) => {
+    // Ignore secondary pointers entirely — a multi-touch gesture is not a tap.
+    if (pointerId !== null || !e.isPrimary) return;
+    pointerId = e.pointerId;
+    startX = e.clientX;
+    startY = e.clientY;
+    startTime = Date.now();
+  });
+
+  el.addEventListener("pointerup", (e) => {
+    if (e.pointerId !== pointerId) return;
+    const held = Date.now() - startTime;
+    const moved = Math.hypot(e.clientX - startX, e.clientY - startY);
+    const isDeliberate =
+      held >= TAP_MIN_DURATION_MS &&
+      held <= TAP_MAX_DURATION_MS &&
+      moved <= TAP_MOVE_TOLERANCE_PX &&
+      Date.now() - lastAccepted >= TAP_COOLDOWN_MS;
+    reset();
+    if (isDeliberate) {
+      lastAccepted = Date.now();
+      onTap(e);
+    }
+  });
+
+  // A cancelled or dragged-away pointer never counts.
+  el.addEventListener("pointercancel", reset);
+  el.addEventListener("pointerleave", reset);
+
+  // Keep keyboard accessibility: Enter/Space on a focused button counts as a
+  // deliberate tap. Mouse clicks are still covered by the pointer handlers.
+  if (el.tagName === "BUTTON" || el.getAttribute("role") === "button") {
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        onTap(e);
+      }
+    });
+  }
+}
+
 function checkPlaygroundDailyReset() {
   const todayStr = getFormattedDate();
   if (state.playgroundRoundsDate !== todayStr) {
@@ -1411,7 +1481,7 @@ pgTargetChips.forEach((chip) => {
 });
 
 // Event Listeners
-tapBtn.addEventListener("click", handleTap);
+bindGuardedTap(tapBtn, handleTap);
 undoBtn.addEventListener("click", handleUndo);
 resetBtn.addEventListener("click", handleReset);
 fullResetBtn.addEventListener("click", handleFullReset);
@@ -1425,10 +1495,12 @@ exitFocusBtn.addEventListener("click", (e) => {
   disableFocusMode();
 });
 
-focusOverlay.addEventListener("click", (e) => {
-  if (e.target !== exitFocusBtn && !exitFocusBtn.contains(e.target)) {
-    handleTap();
-  }
+// Focus mode fills the whole screen, so tap counting uses guarded detection to
+// ignore incidental contact. Taps landing on the exit button are ignored so the
+// button keeps its normal behaviour.
+bindGuardedTap(focusOverlay, (e) => {
+  if (e.target === exitFocusBtn || exitFocusBtn.contains(e.target)) return;
+  handleTap();
 });
 
 document.querySelectorAll(".target-btn").forEach((btn) => {
