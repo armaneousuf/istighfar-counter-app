@@ -152,6 +152,7 @@ const SVG_STAR = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><
 const SVG_LOCK = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>`;
 const SVG_FLAME = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 23c-4.97 0-9-3.6-9-8 0-3.2 2-6 5-7.5-.5 1.5-.2 3 .8 4 1-3 3-5.5 5.5-7-.5 2 .5 4 2 5.5.5-1.5 1.2-3 2.2-4C19.5 8 21 11 21 14c0 4.97-4.03 9-9 9z"/></svg>`;
 const SVG_CROWN = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M5 16L3 6l5.5 5L12 4l3.5 7L21 6l-2 10H5zm0 2h14v2H5v-2z"/></svg>`;
+const SVG_BELL = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>`;
 const SVG_GALAXY = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 2c1 0 1.8.7 2.3 1.7.9-.3 1.9-.4 2.7 0 .5.3.9.8 1 1.4.6.4 1 1 1.1 1.7.1.7-.1 1.4-.5 2 .4.6.5 1.3.3 2-.2.6-.7 1.2-1.3 1.5.1.7 0 1.5-.5 2-.5.6-1.2.9-2 .9-.4.6-1 1.1-1.8 1.2-.7.1-1.4-.1-2-.5-.6.4-1.3.5-2 .4-.7-.2-1.3-.7-1.6-1.3-.7 0-1.4-.3-1.9-.8-.5-.5-.7-1.2-.6-1.9-.6-.4-1.1-1-1.3-1.7-.2-.7 0-1.4.3-2-.4-.6-.5-1.3-.3-2 .2-.6.7-1.2 1.3-1.5-.1-.7 0-1.5.5-2 .5-.6 1.2-.9 2-.9.4-.6 1-1.1 1.8-1.2.4-.1.8 0 1.2.1C10.5 4.4 11.2 4 12 4z"/></svg>`;
 
 function getTierIcon(tier, unlocked) {
@@ -201,6 +202,7 @@ const toastIcon = document.getElementById("toastIcon");
 // Controls
 const soundToggle = document.getElementById("soundToggle");
 const hapticsToggle = document.getElementById("hapticsToggle");
+const reminderToggle = document.getElementById("reminderToggle");
 const undoBtn = document.getElementById("undoBtn");
 const resetBtn = document.getElementById("resetBtn");
 
@@ -280,6 +282,39 @@ const ringCircumference = 2 * Math.PI * ringRadius;
 
 let audioCtx = null;
 
+// Lazily create a single shared AudioContext and unlock it on first user
+// gesture. Reusing one context (instead of creating per-tap) is what keeps
+// rapid taps smooth and click-free.
+function getAudioContext() {
+  if (!audioCtx) {
+    const Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    audioCtx = new Ctx();
+  }
+  if (audioCtx.state === "suspended") audioCtx.resume().catch(() => {});
+  return audioCtx;
+}
+
+// Warm up the audio pipeline on the first real interaction so the very first
+// tap is not silent/laggy on mobile browsers (iOS/Android autoplay rules).
+function primeAudio() {
+  const ctx = getAudioContext();
+  if (!ctx) return;
+  try {
+    const buffer = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    src.start(0);
+  } catch (e) {}
+}
+
+if (typeof window !== "undefined") {
+  ["pointerdown", "touchstart", "keydown"].forEach((evt) =>
+    window.addEventListener(evt, primeAudio, { once: true, passive: true }),
+  );
+}
+
 function getCurrentStreak(history = state?.dailyHistory || {}) {
   let streak = 0;
   const cursor = new Date();
@@ -290,56 +325,69 @@ function getCurrentStreak(history = state?.dailyHistory || {}) {
   return streak;
 }
 
+// A soft, warm tick. Two detuned sine layers plus a short noise-free envelope
+// give a pleasant "bead drop" feel instead of a harsh square beep. A tiny
+// look-ahead start avoids the first-sample glitch that makes rapid taps crackle.
 function playClickSound(pitchShift = 0) {
   if (!state.soundEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
   try {
-    if (!audioCtx)
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
+    const now = ctx.currentTime + 0.005;
+    const baseFreq = 620 + pitchShift;
 
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(550 + pitchShift, audioCtx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(
-      180 + pitchShift,
-      audioCtx.currentTime + 0.04,
-    );
+    // Master gain keeps the tick gentle and never clips on fast repeats.
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(0.14, now + 0.006);
+    master.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+    master.connect(ctx.destination);
 
-    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.start();
-    osc.stop(audioCtx.currentTime + 0.04);
+    // Two layers (sine fundamental + soft triangle harmonic) for body.
+    const layers = [
+      { type: "sine", freq: baseFreq, gain: 1, glide: 0.55 },
+      { type: "triangle", freq: baseFreq * 2, gain: 0.25, glide: 0.4 },
+    ];
+    layers.forEach((layer) => {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = layer.type;
+      osc.frequency.setValueAtTime(layer.freq, now);
+      osc.frequency.exponentialRampToValueAtTime(
+        Math.max(80, layer.freq * layer.glide),
+        now + 0.08,
+      );
+      g.gain.setValueAtTime(layer.gain, now);
+      osc.connect(g);
+      g.connect(master);
+      osc.start(now);
+      osc.stop(now + 0.1);
+    });
   } catch (e) {}
 }
 
 function playMilestoneSound() {
   if (!state.soundEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
   try {
-    if (!audioCtx)
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-
+    const now = ctx.currentTime + 0.005;
     const notes = [523.25, 659.25, 783.99, 1046.5, 1318.51, 1567.98];
     notes.forEach((freq, idx) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = now + idx * 0.08;
       osc.type = "triangle";
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.08);
+      osc.frequency.setValueAtTime(freq, t);
 
-      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + idx * 0.08);
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        audioCtx.currentTime + idx * 0.08 + 0.35,
-      );
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.28, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
 
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(audioCtx.currentTime + idx * 0.08);
-      osc.stop(audioCtx.currentTime + idx * 0.08 + 0.35);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.35);
     });
   } catch (e) {}
 }
@@ -351,28 +399,26 @@ let pgCount = 0;
 
 function playRoundCompleteSound() {
   if (!state.soundEnabled) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
   try {
-    if (!audioCtx)
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (audioCtx.state === "suspended") audioCtx.resume();
-
+    const now = ctx.currentTime + 0.005;
     const notes = [659.25, 987.77];
     notes.forEach((freq, idx) => {
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const t = now + idx * 0.12;
       osc.type = "sine";
-      osc.frequency.setValueAtTime(freq, audioCtx.currentTime + idx * 0.12);
+      osc.frequency.setValueAtTime(freq, t);
 
-      gain.gain.setValueAtTime(0.28, audioCtx.currentTime + idx * 0.12);
-      gain.gain.exponentialRampToValueAtTime(
-        0.001,
-        audioCtx.currentTime + idx * 0.12 + 0.3,
-      );
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.26, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
 
       osc.connect(gain);
-      gain.connect(audioCtx.destination);
-      osc.start(audioCtx.currentTime + idx * 0.12);
-      osc.stop(audioCtx.currentTime + idx * 0.12 + 0.3);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.3);
     });
   } catch (e) {}
 }
@@ -445,7 +491,7 @@ function handlePlaygroundTap() {
     checkPlaygroundDailyReset();
     state.playgroundRoundsToday++;
     playRoundCompleteSound();
-    hapticTap(state.hapticsEnabled);
+    hapticTap(state.hapticsEnabled, "success");
     spawnPlaygroundFloat(`Round complete · ${state.playgroundTarget}`);
     pgCount = 0;
     saveState();
@@ -464,6 +510,7 @@ function handlePlaygroundReset() {
 
 function triggerTargetReward() {
   playMilestoneSound();
+  hapticTap(state.hapticsEnabled, "success");
   for (let i = 0; i < 30; i++) {
     const p = document.createElement("div");
     p.className = "confetti";
@@ -610,6 +657,19 @@ function showMilestoneToast(milestone) {
   setTimeout(() => {
     toastNotification.classList.add("hidden");
   }, 4500);
+}
+
+// Lightweight, reuse of the same toast chip for small confirmations (e.g.
+// reminder enabled/blocked). Uses the bell glyph rather than a star.
+function showToast(title, message) {
+  toastIcon.innerHTML = SVG_BELL;
+  toastTitle.textContent = title;
+  toastDesc.textContent = message;
+
+  toastNotification.classList.remove("hidden");
+  setTimeout(() => {
+    toastNotification.classList.add("hidden");
+  }, 3500);
 }
 
 function spawnFloatingText(text) {
@@ -1422,8 +1482,34 @@ soundToggle.addEventListener("click", () => {
 hapticsToggle.addEventListener("click", () => {
   state.hapticsEnabled = !state.hapticsEnabled;
   hapticsToggle.classList.toggle("on", state.hapticsEnabled);
+  if (state.hapticsEnabled) hapticTap(true, "selection");
   saveState();
 });
+
+if (reminderToggle) {
+  reminderToggle.addEventListener("click", async () => {
+    const next = !state.reminderEnabled;
+    // Reflect the intent immediately; revert if the OS refuses permission.
+    reminderToggle.classList.toggle("on", next);
+    const ok = await setDailyReminder(next, { hour: 20, minute: 0 });
+    if (next && !ok) {
+      reminderToggle.classList.remove("on");
+      state.reminderEnabled = false;
+      showToast(
+        "Notifications are blocked",
+        "Enable them in your device settings to get gentle reminders.",
+      );
+    } else {
+      state.reminderEnabled = next;
+      if (next)
+        showToast(
+          "Daily reminder on",
+          "We'll send one quiet nudge a day. You can turn it off anytime.",
+        );
+    }
+    saveState();
+  });
+}
 
 locationPermBtn.addEventListener("click", () => {
   clearSavedLocation();
@@ -1611,7 +1697,7 @@ importFileInput.addEventListener("change", (e) => {
 
 // Bump this to the date of each release; the settings label derives
 // its "X days ago" text from this automatically.
-const APP_LAST_UPDATED = "2026-09-23";
+const APP_LAST_UPDATED = "2026-09-24";
 
 function updateLastUpdatedLabel() {
   if (!lastUpdateLabel) return;
@@ -1641,14 +1727,13 @@ async function initApp() {
 
   try {
     state = await loadState();
-    // The reminder preference was retired. Clear any prior scheduled reminder
-    // so people who had it enabled are not left with a background notification.
+    // Re-apply the daily reminder if the user had it on. This keeps the
+    // scheduled notification in sync with the stored preference across
+    // reinstalls/updates without ever silently turning it off.
     if (state.reminderEnabled) {
-      state.reminderEnabled = false;
-      setDailyReminder(false).catch((err) =>
-        console.warn("Unable to clear retired reminder", err),
+      setDailyReminder(true, { hour: 20, minute: 0 }).catch((err) =>
+        console.warn("Unable to sync reminder", err),
       );
-      saveState();
     }
     state.streakDays = getCurrentStreak(state.dailyHistory);
 
@@ -1668,6 +1753,8 @@ async function initApp() {
     progressRing.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`;
     soundToggle.classList.toggle("on", state.soundEnabled);
     hapticsToggle.classList.toggle("on", state.hapticsEnabled);
+    if (reminderToggle)
+      reminderToggle.classList.toggle("on", state.reminderEnabled);
     setupBottomNavbar();
     renderBadgesList();
     updateProgress();
