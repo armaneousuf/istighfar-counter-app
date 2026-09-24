@@ -141,7 +141,7 @@ const TIER_COLORS = [
   "#38bdf8",
   "#a78bfa",
   "#f59e0b",
-  "#10b981",
+  "#fb7185",
   "#f472b6",
   "#e8a87c",
   "#00b894",
@@ -891,55 +891,55 @@ function renderWeeklyChart() {
     if (typeof Chart === "undefined") return;
 
     weeklyChartInstance = new Chart(ctx, {
-  type: "bar",
-  data: {
-    labels: days,
-    datasets: [
-      {
-        data: counts,
-        backgroundColor: "rgba(167, 139, 250, 0.85)",
-        hoverBackgroundColor: "rgba(196, 181, 253, 1)",
-        borderRadius: 4,
-        borderSkipped: false,
-        barThickness: "flex",
-        maxBarThickness: 24,
+      type: "bar",
+      data: {
+        labels: days,
+        datasets: [
+          {
+            data: counts,
+            backgroundColor: "rgba(167, 139, 250, 0.85)",
+            hoverBackgroundColor: "rgba(196, 181, 253, 1)",
+            borderRadius: 4,
+            borderSkipped: false,
+            barThickness: "flex",
+            maxBarThickness: 24,
+          },
+        ],
       },
-    ],
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: {
-        backgroundColor: "rgba(18, 14, 34, 0.95)",   // --card-bg based
-        borderColor: "rgba(167, 139, 250, 0.25)",    // --border-color
-        borderWidth: 1,
-        titleColor: "rgba(167, 139, 250, 0.7)",      // accent muted
-        bodyColor: "#e9e4ff",                        // soft violet-white
-        padding: 8,
-        cornerRadius: 6,
-        displayColors: false,
-        callbacks: {
-          title: () => null,
-          label: (ctx) => `${ctx.raw.toLocaleString()} taps`,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: "rgba(18, 14, 34, 0.95)", // --card-bg based
+            borderColor: "rgba(167, 139, 250, 0.25)", // --border-color
+            borderWidth: 1,
+            titleColor: "rgba(167, 139, 250, 0.7)", // accent muted
+            bodyColor: "#e9e4ff", // soft violet-white
+            padding: 8,
+            cornerRadius: 6,
+            displayColors: false,
+            callbacks: {
+              title: () => null,
+              label: (ctx) => `${ctx.raw.toLocaleString()} taps`,
+            },
+          },
         },
-      },
-    },
-    scales: {
-      x: {
-        grid: { display: false, drawBorder: false },
-        ticks: {
-          color: "rgba(167, 139, 250, 0.55)",        // accent muted
-          font: { size: 9, family: "monospace" },
+        scales: {
+          x: {
+            grid: { display: false, drawBorder: false },
+            ticks: {
+              color: "rgba(167, 139, 250, 0.55)", // accent muted
+              font: { size: 9, family: "monospace" },
+            },
+            border: { display: false },
+          },
+          y: { display: false, min: 0 },
         },
-        border: { display: false },
+        animation: { duration: 400 },
       },
-      y: { display: false, min: 0 },
-    },
-    animation: { duration: 400 },
-  },
-});
+    });
   }
 }
 
