@@ -584,7 +584,7 @@ function triggerTargetReward() {
   for (let i = 0; i < 30; i++) {
     const p = document.createElement("div");
     p.className = "confetti";
-    p.style.backgroundColor = ["#10b981", "#38bdf8", "#f59e0b"][
+    p.style.backgroundColor = ["#a78bfa", "#38bdf8", "#f59e0b"][
       Math.floor(Math.random() * 3)
     ];
 
@@ -698,7 +698,9 @@ function updateRankDisplay() {
     nextLevelLabel.textContent =
       nextThreshold === Infinity
         ? "Al-Musaafir achieved — SubhanAllah!"
-        : `${(nextThreshold - effectiveTotal).toLocaleString()} XP until next rank`;
+        : `${(
+            nextThreshold - effectiveTotal
+          ).toLocaleString()} XP until next rank`;
   }
 }
 
@@ -775,15 +777,33 @@ function renderBadgesList() {
 
     card.innerHTML = `
       <div class="flex items-center space-x-2.5">
-        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:${unlocked ? tierColor + "22" : "rgba(255,255,255,0.02)"}; color:${unlocked ? tierColor : "#475569"}; border:1px solid ${unlocked ? tierColor + "55" : "rgba(255,255,255,0.04)"}; ${eliteRing}">
+        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background:${
+          unlocked ? tierColor + "22" : "rgba(255,255,255,0.02)"
+        }; color:${unlocked ? tierColor : "#475569"}; border:1px solid ${
+      unlocked ? tierColor + "55" : "rgba(255,255,255,0.04)"
+    }; ${eliteRing}">
           ${badgeIcon}
         </div>
         <div>
           <div class="flex items-center gap-1">
-            <div class="text-[11px] font-semibold ${unlocked ? "text-slate-100" : "text-slate-500"}">${m.title}</div>
-            ${isElite && unlocked ? '<span style="font-size:8px;color:' + tierColor + ";background:" + tierColor + "18;border:1px solid " + tierColor + '44;padding:0 5px;border-radius:999px;font-weight:700;letter-spacing:.05em;">ELITE</span>' : ""}
+            <div class="text-[11px] font-semibold ${
+              unlocked ? "text-slate-100" : "text-slate-500"
+            }">${m.title}</div>
+            ${
+              isElite && unlocked
+                ? '<span style="font-size:8px;color:' +
+                  tierColor +
+                  ";background:" +
+                  tierColor +
+                  "18;border:1px solid " +
+                  tierColor +
+                  '44;padding:0 5px;border-radius:999px;font-weight:700;letter-spacing:.05em;">ELITE</span>'
+                : ""
+            }
           </div>
-          <div class="text-[9px] ${unlocked ? "text-slate-500" : "text-slate-600"}">${m.desc}</div>
+          <div class="text-[9px] ${
+            unlocked ? "text-slate-500" : "text-slate-600"
+          }">${m.desc}</div>
         </div>
       </div>
       <div>
@@ -840,7 +860,9 @@ function formatChange(current, previous) {
   const difference = current - previous;
   if (difference === 0) return "Same as previous period";
   const direction = difference > 0 ? "more" : "less";
-  return `${difference > 0 ? "+" : "−"}${Math.abs(difference).toLocaleString()} ${direction}`;
+  return `${difference > 0 ? "+" : "−"}${Math.abs(
+    difference,
+  ).toLocaleString()} ${direction}`;
 }
 
 function renderWeeklyChart() {
@@ -869,53 +891,55 @@ function renderWeeklyChart() {
     if (typeof Chart === "undefined") return;
 
     weeklyChartInstance = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: days,
-        datasets: [
-          {
-            data: counts,
-            backgroundColor: "rgba(16, 185, 129, 0.85)",
-            hoverBackgroundColor: "rgba(52, 211, 153, 1)",
-            borderRadius: 4,
-            borderSkipped: false,
-            barThickness: "flex",
-            maxBarThickness: 24,
-          },
-        ],
+  type: "bar",
+  data: {
+    labels: days,
+    datasets: [
+      {
+        data: counts,
+        backgroundColor: "rgba(167, 139, 250, 0.85)",
+        hoverBackgroundColor: "rgba(196, 181, 253, 1)",
+        borderRadius: 4,
+        borderSkipped: false,
+        barThickness: "flex",
+        maxBarThickness: 24,
       },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            backgroundColor: "rgba(15, 23, 42, 0.9)",
-            titleColor: "#94a3b8",
-            bodyColor: "#f8fafc",
-            displayColors: false,
-            callbacks: {
-              title: () => null,
-              label: (ctx) => `${ctx.raw.toLocaleString()} taps`,
-            },
-          },
-        },
-        scales: {
-          x: {
-            grid: { display: false, drawBorder: false },
-            ticks: { color: "#64748b", font: { size: 9, family: "monospace" } },
-            border: { display: false },
-          },
-          y: {
-            display: false,
-            min: 0,
-          },
-        },
-        animation: {
-          duration: 400,
+    ],
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        backgroundColor: "rgba(18, 14, 34, 0.95)",   // --card-bg based
+        borderColor: "rgba(167, 139, 250, 0.25)",    // --border-color
+        borderWidth: 1,
+        titleColor: "rgba(167, 139, 250, 0.7)",      // accent muted
+        bodyColor: "#e9e4ff",                        // soft violet-white
+        padding: 8,
+        cornerRadius: 6,
+        displayColors: false,
+        callbacks: {
+          title: () => null,
+          label: (ctx) => `${ctx.raw.toLocaleString()} taps`,
         },
       },
-    });
+    },
+    scales: {
+      x: {
+        grid: { display: false, drawBorder: false },
+        ticks: {
+          color: "rgba(167, 139, 250, 0.55)",        // accent muted
+          font: { size: 9, family: "monospace" },
+        },
+        border: { display: false },
+      },
+      y: { display: false, min: 0 },
+    },
+    animation: { duration: 400 },
+  },
+});
   }
 }
 
@@ -1072,7 +1096,9 @@ function renderStreakWeek() {
     dot.textContent = dayLetter;
     dot.setAttribute(
       "data-tooltip",
-      `${d.toLocaleDateString("en-US", { weekday: "short" })}: ${count.toLocaleString()}`,
+      `${d.toLocaleDateString("en-US", {
+        weekday: "short",
+      })}: ${count.toLocaleString()}`,
     );
     streakWeekRow.appendChild(dot);
   });
@@ -1306,7 +1332,11 @@ function formatCountdown(date) {
 
 function updateNextPrayerCountdown() {
   if (!nextPrayerCountdown || !nextPrayerDate) return;
-  nextPrayerCountdown.textContent = `${formatCountdown(nextPrayerDate)} · ${nextPrayerDate.toDateString() === new Date().toDateString() ? "today" : "tomorrow"}`;
+  nextPrayerCountdown.textContent = `${formatCountdown(nextPrayerDate)} · ${
+    nextPrayerDate.toDateString() === new Date().toDateString()
+      ? "today"
+      : "tomorrow"
+  }`;
 }
 
 function renderPrayerTimes(latitude, longitude) {
@@ -1344,17 +1374,31 @@ function renderPrayerTimes(latitude, longitude) {
     .map(([name, time]) => {
       const isMarker = name === "Sunrise" || name === "Sunset";
       const isNext = name === next[0] && time.getTime() === next[1].getTime();
-      return `<div class="prayer-row ${isMarker ? "opacity-60" : ""} ${isNext ? "border theme-accent-border bg-emerald-500/[0.08]" : ""}">
-      <span class="flex items-center gap-2.5 text-[11px] font-medium ${isNext ? "text-slate-100" : "text-slate-300"}">
-        <span class="w-1.5 h-1.5 rounded-full ${isMarker ? "bg-amber-300" : "theme-accent-bg"}"></span>${name}${isNext ? '<span class="text-[8px] theme-accent-text uppercase tracking-wide">Next</span>' : ""}
+      return `<div class="prayer-row ${isMarker ? "opacity-60" : ""} ${
+        isNext ? "border theme-accent-border bg-violet-400/[0.08]" : ""
+      }">
+      <span class="flex items-center gap-2.5 text-[11px] font-medium ${
+        isNext ? "text-slate-100" : "text-slate-300"
+      }">
+        <span class="w-1.5 h-1.5 rounded-full ${
+          isMarker ? "bg-amber-300" : "theme-accent-bg"
+        }"></span>${name}${
+        isNext
+          ? '<span class="text-[8px] theme-accent-text uppercase tracking-wide">Next</span>'
+          : ""
+      }
       </span>
-      <span class="text-[11px] ${isNext ? "text-slate-100" : "text-slate-400"} font-mono">${formatPrayerTime(time)}</span>
+      <span class="text-[11px] ${
+        isNext ? "text-slate-100" : "text-slate-400"
+      } font-mono">${formatPrayerTime(time)}</span>
     </div>`;
     })
     .join("");
   prayerStatus.textContent =
     "Karachi method · Hanafi Asr · calculated on device";
-  prayerLocation.textContent = `${latitude.toFixed(2)}, ${longitude.toFixed(2)}`;
+  prayerLocation.textContent = `${latitude.toFixed(2)}, ${longitude.toFixed(
+    2,
+  )}`;
   locationPermBtn.querySelector("span").textContent =
     "Refresh current location";
 }

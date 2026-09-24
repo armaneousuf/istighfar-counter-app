@@ -1,12 +1,12 @@
 {
   "name": "istighfar-app",
-  "version": "3.9.1",
+  "version": "3.9.5",
   "description": "",
   "main": "sw.js",
   "scripts": {
     "version:bump": "node scripts/bump-version.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build:css": "tailwindcss -i ./tailwind.input.css -o ./www/tailwind.css --minify"
+    "build:css": "tailwindcss -i ./src/input.css -o ./www/tailwind.css --minify"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +23,7 @@
     "chart.js": "^4.5.1"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "tailwindcss": "^3.4.19"
   }
 }
