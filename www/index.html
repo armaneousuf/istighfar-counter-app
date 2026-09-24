@@ -87,12 +87,11 @@
       }
 
       :root {
-        --accent-color: #10b981;
-        --accent-glow: rgba(16, 185, 129, 0.3);
-        --border-color: rgba(16, 185, 129, 0.2);
-        --card-bg: #0a1710;
-        /* Flat dark background (no gradient) — matches the old look */
-        --app-bg: #05070c;
+        --accent-color: #a78bfa;
+        --accent-glow: rgba(167, 139, 250, 0.3);
+        --border-color: rgba(167, 139, 250, 0.2);
+        --card-bg: #120e22;
+        --app-bg: #06040f;
       }
 
       html,
@@ -204,17 +203,17 @@
         background-color: rgba(255, 255, 255, 0.05);
       }
       .hm-level-1 {
-        background-color: #064e3b;
+        background-color: #2e1f5e;
       }
       .hm-level-2 {
-        background-color: #047857;
+        background-color: #5b3fb0;
       }
       .hm-level-3 {
-        background-color: #10b981;
+        background-color: #a78bfa;
       }
       .hm-level-4 {
-        background-color: #34d399;
-        box-shadow: 0 0 6px rgba(52, 211, 153, 0.4);
+        background-color: #c4b5fd;
+        box-shadow: 0 0 6px rgba(196, 181, 253, 0.4);
       }
 
       /* Tooltip styling */
@@ -467,7 +466,7 @@
     >
       <div id="loadingSpinner" class="flex flex-col items-center">
         <svg
-          class="animate-spin h-10 w-10 text-emerald-500 mb-4"
+          class="animate-spin h-10 w-10 text-[var(--accent-color)] mb-4"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
