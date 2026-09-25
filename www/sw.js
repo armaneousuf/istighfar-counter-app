@@ -1,4 +1,4 @@
-const CACHE_NAME = 'istighfar-cache-v3.9.6.28';
+const CACHE_NAME = 'istighfar-cache-v3.9.7.29';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -8,7 +8,6 @@ const ASSETS_TO_CACHE = [
   './js/constants.js',
   './js/storage.js',
   './js/services/haptics.js',
-  './js/services/notifications.js',
   './js/services/prayer.js',
   './vendor/adhan/Adhan.js',
   './vendor/adhan/Astronomical.js',

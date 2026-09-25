@@ -21,7 +21,7 @@ function hydrate(saved) {
     ...defaultState,
     ...saved,
     hapticsEnabled: saved.hapticsEnabled ?? true,
-    reminderEnabled: saved.reminderEnabled ?? false,
+    bestStreak: saved.bestStreak ?? 0,
     selectedDua: saved.selectedDua || "1",
     unlockedBadges: new Set(saved.unlockedBadges || []),
     dailyHistory: saved.dailyHistory || {},

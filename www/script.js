@@ -5,7 +5,6 @@ import {
   saveState as persistState,
 } from "./js/storage.js";
 import { hapticTap } from "./js/services/haptics.js";
-import { setDailyReminder } from "./js/services/notifications.js";
 import {
   calculatePrayerTimes,
   formatPrayerTime,
@@ -152,7 +151,6 @@ const SVG_STAR = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><
 const SVG_LOCK = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/></svg>`;
 const SVG_FLAME = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 23c-4.97 0-9-3.6-9-8 0-3.2 2-6 5-7.5-.5 1.5-.2 3 .8 4 1-3 3-5.5 5.5-7-.5 2 .5 4 2 5.5.5-1.5 1.2-3 2.2-4C19.5 8 21 11 21 14c0 4.97-4.03 9-9 9z"/></svg>`;
 const SVG_CROWN = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M5 16L3 6l5.5 5L12 4l3.5 7L21 6l-2 10H5zm0 2h14v2H5v-2z"/></svg>`;
-const SVG_BELL = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>`;
 const SVG_GALAXY = `<svg viewBox="0 0 24 24" class="w-4 h-4" fill="currentColor"><path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 2c1 0 1.8.7 2.3 1.7.9-.3 1.9-.4 2.7 0 .5.3.9.8 1 1.4.6.4 1 1 1.1 1.7.1.7-.1 1.4-.5 2 .4.6.5 1.3.3 2-.2.6-.7 1.2-1.3 1.5.1.7 0 1.5-.5 2-.5.6-1.2.9-2 .9-.4.6-1 1.1-1.8 1.2-.7.1-1.4-.1-2-.5-.6.4-1.3.5-2 .4-.7-.2-1.3-.7-1.6-1.3-.7 0-1.4-.3-1.9-.8-.5-.5-.7-1.2-.6-1.9-.6-.4-1.1-1-1.3-1.7-.2-.7 0-1.4.3-2-.4-.6-.5-1.3-.3-2 .2-.6.7-1.2 1.3-1.5-.1-.7 0-1.5.5-2 .5-.6 1.2-.9 2-.9.4-.6 1-1.1 1.8-1.2.4-.1.8 0 1.2.1C10.5 4.4 11.2 4 12 4z"/></svg>`;
 
 function getTierIcon(tier, unlocked) {
@@ -202,7 +200,6 @@ const toastIcon = document.getElementById("toastIcon");
 // Controls
 const soundToggle = document.getElementById("soundToggle");
 const hapticsToggle = document.getElementById("hapticsToggle");
-const reminderToggle = document.getElementById("reminderToggle");
 const undoBtn = document.getElementById("undoBtn");
 const resetBtn = document.getElementById("resetBtn");
 
@@ -323,6 +320,39 @@ function getCurrentStreak(history = state?.dailyHistory || {}) {
     cursor.setDate(cursor.getDate() - 1);
   }
   return streak;
+}
+
+// Find the longest run of consecutive days with at least one count anywhere in
+// the history — including streaks that have already ended. Dates are stored as
+// YYYY-MM-DD keys, so we sort them and compare calendar days directly.
+function getLongestStreak(history = state?.dailyHistory || {}) {
+  const days = Object.keys(history)
+    .filter((key) => (history[key] || 0) > 0)
+    .sort();
+  if (!days.length) return 0;
+
+  let longest = 1;
+  let run = 1;
+  for (let i = 1; i < days.length; i++) {
+    const prev = new Date(days[i - 1] + "T00:00:00");
+    const curr = new Date(days[i] + "T00:00:00");
+    const gapDays = Math.round((curr - prev) / 86400000);
+    run = gapDays === 1 ? run + 1 : 1;
+    if (run > longest) longest = run;
+  }
+  return longest;
+}
+
+// Recompute the current streak and keep the best as the longest run of days
+// ever recorded. Deriving it from the whole history (not just today's streak)
+// means a past peak is recovered even if the current streak has since broken.
+function updateStreak() {
+  state.streakDays = getCurrentStreak(state.dailyHistory);
+  state.bestStreak = Math.max(
+    state.bestStreak || 0,
+    getLongestStreak(state.dailyHistory),
+    state.streakDays,
+  );
 }
 
 // A soft, warm tick. Two detuned sine layers plus a short noise-free envelope
@@ -731,19 +761,6 @@ function showMilestoneToast(milestone) {
   }, 4500);
 }
 
-// Lightweight, reuse of the same toast chip for small confirmations (e.g.
-// reminder enabled/blocked). Uses the bell glyph rather than a star.
-function showToast(title, message) {
-  toastIcon.innerHTML = SVG_BELL;
-  toastTitle.textContent = title;
-  toastDesc.textContent = message;
-
-  toastNotification.classList.remove("hidden");
-  setTimeout(() => {
-    toastNotification.classList.add("hidden");
-  }, 3500);
-}
-
 function spawnFloatingText(text) {
   const el = document.createElement("div");
   el.className =
@@ -1132,7 +1149,7 @@ function updateProgress() {
   if (statTotalIstighfar)
     statTotalIstighfar.textContent = state.lifetimeTotal.toLocaleString();
   if (statStreak) statStreak.textContent = `${state.streakDays}`;
-  if (statBestStreak) statBestStreak.textContent = `${state.streakDays}`;
+  if (statBestStreak) statBestStreak.textContent = `${state.bestStreak}`;
   // Derived directly from lifetimeTotal (source of truth) instead of a
   // separately-incremented counter, so it can never drift out of sync.
   const kCompletedCount = Math.floor(state.lifetimeTotal / 1000);
@@ -1141,7 +1158,7 @@ function updateProgress() {
     statBadgesEarned.textContent = `${state.unlockedBadges.size}/${MILESTONES.length}`;
 
   if (streakBigNumber) streakBigNumber.textContent = state.streakDays;
-  if (streakBestDisplay) streakBestDisplay.textContent = state.streakDays;
+  if (streakBestDisplay) streakBestDisplay.textContent = state.bestStreak;
   if (streak1kDisplay) streak1kDisplay.textContent = kCompletedCount;
 
   updateRankDisplay();
@@ -1166,7 +1183,7 @@ function checkDailyReset() {
     state.todayTotal = 0;
     state.count = 0;
     state.lastActiveDate = currentTodayStr;
-    state.streakDays = getCurrentStreak(state.dailyHistory);
+    updateStreak();
     saveState();
 
     updateProgress();
@@ -1219,7 +1236,7 @@ function handleTap() {
 
   const iso = getFormattedDate();
   state.dailyHistory[iso] = (state.dailyHistory[iso] || 0) + 1;
-  state.streakDays = getCurrentStreak(state.dailyHistory);
+  updateStreak();
 
   if (state.count === state.target) {
     triggerTargetReward();
@@ -1250,7 +1267,7 @@ function handleUndo() {
     if (state.dailyHistory[iso] && state.dailyHistory[iso] > 0) {
       state.dailyHistory[iso]--;
     }
-    state.streakDays = getCurrentStreak(state.dailyHistory);
+    updateStreak();
 
     updateProgress();
     saveState();
@@ -1602,31 +1619,6 @@ hapticsToggle.addEventListener("click", () => {
   saveState();
 });
 
-if (reminderToggle) {
-  reminderToggle.addEventListener("click", async () => {
-    const next = !state.reminderEnabled;
-    // Reflect the intent immediately; revert if the OS refuses permission.
-    reminderToggle.classList.toggle("on", next);
-    const ok = await setDailyReminder(next, { hour: 20, minute: 0 });
-    if (next && !ok) {
-      reminderToggle.classList.remove("on");
-      state.reminderEnabled = false;
-      showToast(
-        "Notifications are blocked",
-        "Enable them in your device settings to get gentle reminders.",
-      );
-    } else {
-      state.reminderEnabled = next;
-      if (next)
-        showToast(
-          "Daily reminder on",
-          "We'll send one quiet nudge a day. You can turn it off anytime.",
-        );
-    }
-    saveState();
-  });
-}
-
 locationPermBtn.addEventListener("click", () => {
   clearSavedLocation();
   loadPrayerTimes();
@@ -1843,15 +1835,7 @@ async function initApp() {
 
   try {
     state = await loadState();
-    // Re-apply the daily reminder if the user had it on. This keeps the
-    // scheduled notification in sync with the stored preference across
-    // reinstalls/updates without ever silently turning it off.
-    if (state.reminderEnabled) {
-      setDailyReminder(true, { hour: 20, minute: 0 }).catch((err) =>
-        console.warn("Unable to sync reminder", err),
-      );
-    }
-    state.streakDays = getCurrentStreak(state.dailyHistory);
+    updateStreak();
 
     checkDailyReset();
 
@@ -1869,8 +1853,6 @@ async function initApp() {
     progressRing.style.strokeDasharray = `${ringCircumference} ${ringCircumference}`;
     soundToggle.classList.toggle("on", state.soundEnabled);
     hapticsToggle.classList.toggle("on", state.hapticsEnabled);
-    if (reminderToggle)
-      reminderToggle.classList.toggle("on", state.reminderEnabled);
     setupBottomNavbar();
     renderBadgesList();
     updateProgress();
