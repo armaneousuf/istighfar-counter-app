@@ -1,4 +1,4 @@
-const CACHE_NAME = 'istighfar-cache-v3.9.8.30';
+const CACHE_NAME = 'istighfar-cache-v3.9.9.31';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
