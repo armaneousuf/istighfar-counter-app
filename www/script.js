@@ -238,6 +238,7 @@ const heatmapMonths = document.getElementById("heatmapMonths");
 const insightDate = document.getElementById("insightDate");
 const insightTodayProgress = document.getElementById("insightTodayProgress");
 const insightTodayRemaining = document.getElementById("insightTodayRemaining");
+const insightTodayPercent = document.getElementById("insightTodayPercent");
 const insightTodayBar = document.getElementById("insightTodayBar");
 const insightWeekTotal = document.getElementById("insightWeekTotal");
 const insightWeekChange = document.getElementById("insightWeekChange");
@@ -965,7 +966,11 @@ function renderInsightSummary() {
 
   const today = state.todayTotal || 0;
   const target = state.target || 1000;
-  const percentage = Math.min(100, Math.round((today / target) * 100));
+  const rawPercentage = target > 0 ? (today / target) * 100 : 0;
+  const percentage = Math.min(100, rawPercentage);
+  // Uncapped, so tapping past the goal keeps climbing (2000 of 1000 = 200%).
+  // Floor, not round, so it matches the homepage label exactly under the goal.
+  const displayPercentage = Math.floor(rawPercentage);
   const remaining = Math.max(0, target - today);
   const week = getRecentDays(7);
   const weeklyTotal = week.reduce((sum, day) => sum + day.count, 0);
@@ -999,6 +1004,9 @@ function renderInsightSummary() {
       percentage >= 100
         ? `Goal reached · ${target.toLocaleString()}`
         : `${remaining.toLocaleString()} remaining of ${target.toLocaleString()}`;
+  }
+  if (insightTodayPercent) {
+    insightTodayPercent.textContent = `${displayPercentage}%`;
   }
   if (insightTodayBar) insightTodayBar.style.width = `${percentage}%`;
   if (insightWeekTotal)
