@@ -1813,7 +1813,7 @@ importFileInput.addEventListener("change", (e) => {
 
 // Bump this to the date of each release; the settings label derives
 // its "X days ago" text from this automatically.
-const APP_LAST_UPDATED = "2026-09-24";
+const APP_LAST_UPDATED = "2026-09-25";
 
 function updateLastUpdatedLabel() {
   if (!lastUpdateLabel) return;
